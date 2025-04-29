@@ -25,5 +25,5 @@ struct CardView: View {
 }
 
 #Preview {
-    CardView(card: Card(suit: .clubs, value: .Jack))
+    CardView(card: Card(suit: .clubs, value: .jack))
 }
