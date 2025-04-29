@@ -32,5 +32,5 @@ struct AnimatedCardView: View {
 
 
 #Preview {
-    AnimatedCardView(card: Card(suit: .clubs, value: .Ace), isPlayed: true)
+    AnimatedCardView(card: Card(suit: .clubs, value: .ace), isPlayed: true)
 }

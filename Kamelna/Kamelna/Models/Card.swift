@@ -28,10 +28,10 @@ struct Card : Identifiable, Codable {
              seven = "7",
              eight = "8",
              nine = "9",
-             Jack = "J" ,
-             Queen = "Q",
-             King = "K",
-             Ace = "A"
+             jack = "J" ,
+             queen = "Q",
+             king = "K",
+             ace = "A"
     }
 }
 
