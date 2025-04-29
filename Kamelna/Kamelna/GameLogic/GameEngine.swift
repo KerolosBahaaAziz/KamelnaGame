@@ -59,6 +59,7 @@ class GameEngine : ObservableObject {
         
         // Validate if the player has the card
         if let cardIndex = currentPlayer.hand.firstIndex(where: { $0.id == card.id }) {
+            SoundManager.shared.playSound(named: "flipcard.mp3")
             // Remove from hand
             let playedCard = PlayedCard(playerName: currentPlayer.name, card: card)
             tableCards.append(playedCard)

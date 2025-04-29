@@ -11,4 +11,5 @@ struct Player : Identifiable {
     let id = UUID()
     let name : String
     var hand : [Card]
+    var score: Int = 0
 }
