@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 class GameEngine : ObservableObject {
     // MARK: - Published Properties (UI will listen to changes)
@@ -14,16 +15,19 @@ class GameEngine : ObservableObject {
     @Published var tableCards: [PlayedCard] = [] // Cards played on the table
     @Published var currentPlayerIndex: Int = 0
     @Published var roundEnded: Bool = false
+    @Published var timeRemaning : Int = 10
     
+    private var timer : AnyCancellable?
     // MARK: - Setup Functions
     
     func setupGame(playerNames: [String]) {
         players = playerNames.map { Player(name: $0, hand: []) }
         createAndShuffleDeck()
-        dealCards()
+        dealCards(cardsPerPlayer: 52 / players.count)
         currentPlayerIndex = 0
         tableCards = []
         roundEnded = false
+        startTurnTimer()
     }
     
     private func createAndShuffleDeck() {
@@ -69,13 +73,20 @@ class GameEngine : ObservableObject {
         // Check if round ends (all players played one card)
         if tableCards.count >= players.count {
             endRound()
-        } else {
+            stopTurnTimer()
+        }else if players.allSatisfy({ $0.hand.isEmpty }){
+            roundEnded = true
+            stopTurnTimer()
+            return
+        }else {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.count
+            startTurnTimer()
         }
     }
     
     private func endRound() {
         roundEnded = true
+        startTurnTimer()
         // You can add scoring logic here later
     }
     
@@ -83,6 +94,48 @@ class GameEngine : ObservableObject {
         tableCards = []
         roundEnded = false
         currentPlayerIndex = 0
+        startTurnTimer()
+    }
+    
+    func startTurnTimer(){
+        stopTurnTimer() //just for protection
+        timeRemaning = 10
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink{ [weak self] _ in
+                guard let strongSelf = self else { return }
+                strongSelf.tick()
+            }
+    }
+    
+    func stopTurnTimer(){
+        timer?.cancel()
+        timer = nil
+    }
+    
+    private func tick(){
+        guard timeRemaning > 0 else {
+            timerDidFinish()
+            return
+        }
+        timeRemaning -= 1
+    }
+    
+    private func timerDidFinish(){
+        stopTurnTimer()
+        playRandomCard()
+    }
+    
+    func playRandomCard(){
+        let player = players[currentPlayerIndex]
+        
+        guard !player.hand.isEmpty else {
+            // there is someLogic needed to be handled here
+            return
+        }
+        if let randomCard = player.hand.randomElement() {
+            playCard(randomCard)
+        }
     }
 }
 
