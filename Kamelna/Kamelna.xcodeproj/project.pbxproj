@@ -13,6 +13,8 @@
 		F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */; };
 		F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */; };
 		F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */; };
+		F5D40DE12DC2534400B78B0F /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40DE02DC2534400B78B0F /* GoogleSignIn */; };
+		F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,9 +40,22 @@
 		F58D59AD2DBF8689007AE133 /* KamelnaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KamelnaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F5D40DE52DC253A800B78B0F /* Exceptions for "Kamelna" folder in "Kamelna" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F58D598D2DBF8687007AE133 /* Kamelna */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F58D59902DBF8687007AE133 /* Kamelna */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F5D40DE52DC253A800B78B0F /* Exceptions for "Kamelna" folder in "Kamelna" target */,
+			);
 			path = Kamelna;
 			sourceTree = "<group>";
 		};
@@ -64,9 +79,11 @@
 				F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */,
 				F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */,
 				F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */,
+				F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */,
 				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
 				F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */,
 				F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */,
+				F5D40DE12DC2534400B78B0F /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +150,8 @@
 				F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */,
 				F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */,
 				F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */,
+				F5D40DE02DC2534400B78B0F /* GoogleSignIn */,
+				F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -218,6 +237,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F58D598F2DBF8687007AE133 /* Products */;
@@ -423,6 +443,7 @@
 				DEVELOPMENT_TEAM = ZA23JTQV5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kamelna/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -453,6 +474,7 @@
 				DEVELOPMENT_TEAM = ZA23JTQV5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kamelna/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -594,6 +616,14 @@
 				minimumVersion = 11.12.0;
 			};
 		};
+		F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -626,6 +656,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
+		};
+		F5D40DE02DC2534400B78B0F /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -55,7 +55,7 @@ class RoomManager {
         }
     }
     
-    func generateRoomCode(length: Int = 5) -> String {
+    private func generateRoomCode(length: Int = 5) -> String {
         let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return String((0..<length).map { _ in characters.randomElement()! })
     }
@@ -356,4 +356,62 @@ class RoomManager {
             return "player1" // إذا كان الدور غير معروف، نبدأ من اللاعب الأول
         }
     }
+    
+    func autoJoinOrCreateRoom(currentUserId: String, playerName: String, completion: @escaping (String?) -> Void) {
+        let db = Firestore.firestore()
+        let roomsRef = db.collection("rooms")
+
+        // Fetch rooms with status "waiting"
+        roomsRef.whereField("status", isEqualTo: "waiting").getDocuments { [weak self] snapshot, error in
+            guard let self = self else { return }
+
+            if let error = error {
+                print("Error fetching rooms: \(error)")
+                completion(nil)
+                return
+            }
+
+            let rooms = snapshot?.documents ?? []
+            var joinableRoom: QueryDocumentSnapshot?
+
+            // Prioritize rooms that are almost full (3 players → needs 1, then 2, etc.)
+            let sortedRooms = rooms.sorted { lhs, rhs in
+                let lhsPlayers = (lhs.data()["players"] as? [String: Any])?.count ?? 0
+                let rhsPlayers = (rhs.data()["players"] as? [String: Any])?.count ?? 0
+                return (4 - lhsPlayers) < (4 - rhsPlayers)  // Sort by how many players are missing
+            }
+
+            // Loop through sorted rooms to find one with available spots
+            for room in sortedRooms {
+                if let players = room.data()["players"] as? [String: Any], players.count < 4 {
+                    joinableRoom = room
+                    break
+                }
+            }
+
+            // If a joinable room is found, attempt to join it
+            if let room = joinableRoom {
+                let roomId = room.documentID
+                self.joinRoom(roomId: roomId, currentUserId: currentUserId, playerName: playerName) { success in
+                    if success {
+                        print("Joined existing room: \(roomId)")
+                        completion(roomId)
+                    } else {
+                        print("Could not join room, creating a new one.")
+                        // If join failed, create a new room
+                        self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                            completion(newRoomId)
+                        }
+                    }
+                }
+            } else {
+                // No room found, create a new one
+                print("No available room found. Creating a new room.")
+                self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                    completion(newRoomId)
+                }
+            }
+        }
+    }
+
 }
