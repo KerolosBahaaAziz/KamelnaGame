@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB42DC22B7400B78B0F /* FirebaseAuth */; };
+		F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB62DC22B7400B78B0F /* FirebaseCore */; };
+		F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */; };
+		F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */; };
+		F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */; };
+		F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F58D59A42DBF8689007AE133 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +61,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */,
+				F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */,
+				F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */,
+				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
+				F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */,
+				F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +127,12 @@
 			);
 			name = Kamelna;
 			packageProductDependencies = (
+				F5D40CB42DC22B7400B78B0F /* FirebaseAuth */,
+				F5D40CB62DC22B7400B78B0F /* FirebaseCore */,
+				F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */,
+				F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */,
+				F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */,
+				F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -195,6 +216,9 @@
 			);
 			mainGroup = F58D59852DBF8687007AE133;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F58D598F2DBF8687007AE133 /* Products */;
 			projectDirPath = "";
@@ -560,6 +584,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F5D40CB42DC22B7400B78B0F /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		F5D40CB62DC22B7400B78B0F /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F58D59862DBF8687007AE133 /* Project object */;
 }
