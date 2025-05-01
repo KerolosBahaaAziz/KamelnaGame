@@ -413,5 +413,22 @@ class RoomManager {
             }
         }
     }
-
+    
+//    func sendMessage(roomId : String , senderId : String , message : String, completion : @escaping ((Error?) -> Void)){
+//        let db = Firestore.firestore()
+//        
+//        let messageData : [String : Any] = [
+//            // here we should add the sender nick name also or the sender name
+//            "senderId" : senderId ,
+//            "message" : message ,
+//            "timestamp" : FieldValue.serverTimestamp()
+//        ]
+//        
+//        db.collection("rooms")
+//            .document(roomId)
+//            .collection("messages")
+//            .addDocument(data: messageData){ error in
+//                completion(error)
+//            }
+//    }
 }
