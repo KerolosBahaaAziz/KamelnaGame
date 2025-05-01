@@ -12,7 +12,8 @@ import FirebaseAuth
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     let roomManager = RoomManager()
-
+    @State var roomID : String = ""
+    @State var message : String = ""
     var body: some View {
 //        GameView()
         VStack{
@@ -26,6 +27,7 @@ struct ContentView: View {
                             print("Couldn't create a room ID")
                             return
                         }
+                        roomID = roomId
                         print("Successfully Created a room \(roomId)")
                     })
                     print("User ID: \(userId)")
@@ -34,6 +36,21 @@ struct ContentView: View {
                     print("No user is logged in. Redirect to login screen.")
                 }
             })
+            TextField("send message", text: $message)
+            Button("Send Message") {
+                if let user = Auth.auth().currentUser {
+                    let userId = user.uid
+                    roomManager.sendMessage(roomId: roomID, senderId: userId, message: message) { error in
+                        if let error = error {
+                            print("Error sending message: \(error.localizedDescription)")
+                        } else {
+                            print("Message sent: \(message)")
+                            message = "" // Clear message field after send
+                        }
+                    }
+                }
+            }
+            RoomChatView(roomId: "V3FDS")
         }
     }
 }
