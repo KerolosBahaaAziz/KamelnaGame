@@ -11,46 +11,39 @@ import FirebaseAuth
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    let roomManager = RoomManager()
+    //    let roomManager = RoomManager()
     @State var roomID : String = ""
-    @State var message : String = ""
+    @State var shouldNavigate = false
+    
     var body: some View {
-//        GameView()
-        VStack{
-            GoogleSignInView()
-            Button("Create Room", action: {
-                if let user = Auth.auth().currentUser {
-                    let userId = user.uid
-                    roomManager.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
-                        roomId in
-                        guard let roomId = roomId else {
-                            print("Couldn't create a room ID")
-                            return
-                        }
-                        roomID = roomId
-                        print("Successfully Created a room \(roomId)")
-                    })
-                    print("User ID: \(userId)")
-                } else {
-                    // Handle the case where no user is signed in
-                    print("No user is logged in. Redirect to login screen.")
-                }
-            })
-            TextField("send message", text: $message)
-            Button("Send Message") {
-                if let user = Auth.auth().currentUser {
-                    let userId = user.uid
-                    roomManager.sendMessage(roomId: roomID, senderId: userId, message: message) { error in
-                        if let error = error {
-                            print("Error sending message: \(error.localizedDescription)")
-                        } else {
-                            print("Message sent: \(message)")
-                            message = "" // Clear message field after send
-                        }
+        //        GameView()
+        NavigationStack{
+            VStack{
+                GoogleSignInView()
+                Button("Create Room", action: {
+                    if let user = Auth.auth().currentUser {
+                        let userId = user.uid
+                        RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
+                            roomId in
+                            guard let roomId = roomId else {
+                                print("Couldn't create a room ID")
+                                return
+                            }
+                            roomID = roomId
+                            shouldNavigate = true
+                            print("Successfully Created a room \(roomId)")
+                        })
+                        print("User ID: \(userId)")
+                    } else {
+                        // Handle the case where no user is signed in
+                        print("No user is logged in. Redirect to login screen.")
                     }
+                })
+                NavigationLink(destination: RoomChatView(roomId: $roomID), isActive: $shouldNavigate) {
+                    EmptyView()
                 }
+                .hidden()
             }
-            RoomChatView(roomId: "V3FDS")
         }
     }
 }
