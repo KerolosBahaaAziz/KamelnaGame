@@ -9,6 +9,8 @@ import Foundation
 import FirebaseFirestore
 
 class RoomManager {
+    static let shared = RoomManager()
+    
     func createRoom(currentUserId: String, name: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomId = generateRoomCode()
@@ -18,7 +20,7 @@ class RoomManager {
         let roomData: [String: Any] = [
             "hostId": currentUserId,
             "createdAt": FieldValue.serverTimestamp(),
-            "status": "waiting", // ممكن تبقى: waiting / playing / ended
+            "status": RoomStatus.waiting.rawValue, // ممكن تبقى: waiting / playing / ended
             "gameType": "baloot",
             "trumpSuit": NSNull(), // لسه متحددش
             "turnPlayerId": NSNull(), // لسه متبدأش اللعبة
@@ -60,39 +62,40 @@ class RoomManager {
         return String((0..<length).map { _ in characters.randomElement()! })
     }
     
-    func distributeCardsToPlayers(roomId: String, playersIds: [String], completion: @escaping (Bool) -> Void) {
+    func distributeCardsToPlayers(roomId: String, players: [String: [String: Any]], completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-        
-        // قائمة الكروت الممكنة في البلوت
+
+        // تأكد إن عدد اللاعبين ٤ فقط
+        guard players.count == 4 else {
+            print("Error: Number of players must be exactly 4 to distribute cards.")
+            completion(false)
+            return
+        }
+
         let allCards = [
             "7♠️", "8♠️", "9♠️", "10♠️", "J♠️", "Q♠️", "K♠️", "A♠️",
             "7♥️", "8♥️", "9♥️", "10♥️", "J♥️", "Q♥️", "K♥️", "A♥️",
             "7♣️", "8♣️", "9♣️", "10♣️", "J♣️", "Q♣️", "K♣️", "A♣️",
             "7♦️", "8♦️", "9♦️", "10♦️", "J♦️", "Q♦️", "K♦️", "A♦️"
         ]
-        
-        // نخلط الكروت
+
         var shuffledCards = allCards.shuffled()
-        
-        // توزيع الكروت على اللاعبين
-        var playerHands: [String: [String]] = [:]
-        
-        for playerId in playersIds {
-            playerHands[playerId] = Array(shuffledCards.prefix(8)) // كل لاعب ياخد 8 كروت
-            shuffledCards.removeFirst(8) // حذف الكروت اللي اتوزعت
+        var updatedPlayers = players
+
+        for (playerId, var playerData) in updatedPlayers {
+            let hand = Array(shuffledCards.prefix(8))
+            shuffledCards.removeFirst(8)
+            playerData["hand"] = hand
+            playerData["playedCard"] = NSNull()
+            updatedPlayers[playerId] = playerData
         }
-        
-        // تحديث الـ Firestore
-        var playersData: [String: [String: Any]] = [:]
-        for (playerId, hand) in playerHands {
-            playersData[playerId] = [
-                "hand": hand
-            ]
+
+        var updates: [String: Any] = [:]
+        for (playerId, playerData) in updatedPlayers {
+            updates["players.\(playerId)"] = playerData
         }
-        
-        // تحديث كروت اللاعبين في قاعدة البيانات
-        roomRef.updateData(["players": playersData]) { error in
+        roomRef.updateData(updates) { error in
             if let error = error {
                 print("Error distributing cards: \(error)")
                 completion(false)
@@ -228,13 +231,14 @@ class RoomManager {
     }
     
     // دالة لتحديد الفائز في الجولة
-    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: String) -> String? {
+    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: Suit) -> String? {
         var highestCard: String = ""
         var highestCardValue: Int = 0
         var winnerPlayerId: String?
         
         for (playerId, card) in cardsInTrick {
-            let cardValue = getCardPoints(card: card, trumpSuit: trumpSuit)
+            let isTrump = isTrumpCard(card: card, trumpSuit: trumpSuit)
+            let cardValue = getCardPoints(card: card, trumpSuit: trumpSuit, isTrumpGame: isTrump)
             
             // إذا كانت الورقة أعلى من الورقة الحالية
             if cardValue > highestCardValue {
@@ -248,42 +252,61 @@ class RoomManager {
     }
     
     // دالة لحساب النقاط بناءً على الورقة
-    func getCardPoints(card: String, trumpSuit: String) -> Int {
+    func getCardPoints(card: String, trumpSuit: Suit, isTrumpGame: Bool) -> Int {
         let isTrump = isTrumpCard(card: card, trumpSuit: trumpSuit)
         
         if isTrump {
-            // إذا كانت الورقة ترامب، نقوم بإعطائها قيمة أعلى
-            return getCardValue(card: card) + 100  // نضيف 100 للنقاط لو الورقة ترامب
+            // إذا كانت الورقة ترامب، نعتمد التقييم الخاص بالترامب
+            return getCardValue(card: card, trumpSuit: trumpSuit.rawValue, isTrumpGame: isTrumpGame)
         } else {
-            return getCardValue(card: card)
+            return getCardValue(card: card, trumpSuit: trumpSuit.rawValue, isTrumpGame: isTrumpGame)
         }
     }
     
     // دالة للتحقق إذا كانت الورقة من نوع ترامب
-    func isTrumpCard(card: String, trumpSuit: String) -> Bool {
-        return card.contains(trumpSuit)
+    func isTrumpCard(card: String, trumpSuit: Suit) -> Bool {
+        return card.contains(trumpSuit.rawValue)
     }
+
     
     // دالة لحساب قيمة الورقة
-    func getCardValue(card: String) -> Int {
-        switch card {
-        case "2", "3", "4", "5", "6", "7", "8", "9", "10":
-            return Int(card) ?? 0
-        case "J":
-            return 11
-        case "Q":
-            return 12
-        case "K":
-            return 13
-        case "A":
-            return 14
-        default:
-            return 0
+    func getCardValue(card: String, trumpSuit: String?, isTrumpGame: Bool) -> Int {
+        // استخرج الرتبة والسوت
+        let suits = ["♠️", "♥️", "♣️", "♦️"]
+        guard let suit = suits.first(where: { card.contains($0) }) else { return 0 }
+
+        // استخرج الرتبة (زي "J", "10", "A"...)
+        let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
+        guard let rank = ranks.first(where: { card.contains($0) }) else { return 0 }
+
+        let isTrump = (trumpSuit != nil && suit == trumpSuit)
+
+        if isTrumpGame && isTrump {
+            // قيم الكروت في الحكم
+            switch rank {
+            case "J": return 20
+            case "9": return 14
+            case "A": return 11
+            case "10": return 10
+            case "K": return 4
+            case "Q": return 3
+            default: return 0
+            }
+        } else {
+            // قيم الكروت في صن أو غير الحكم
+            switch rank {
+            case "A": return 11
+            case "10": return 10
+            case "K": return 4
+            case "Q": return 3
+            case "J": return 2
+            default: return 0
+            }
         }
     }
     
     // دالة لتحديث النقاط بعد انتهاء الجولة
-    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: String) {
+    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
         
@@ -307,7 +330,7 @@ class RoomManager {
                 var teamScores = document.data()?["teamScores"] as? [String: Int] ?? ["team1": 0, "team2": 0]
                 
                 // تحديد الفريق الفائز بالجولة بناءً على الفائز
-                let winningTeam = strongSelf.getWinningTeam(playerId: winnerPlayerId)
+                let winningTeam = strongSelf.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
                 
                 // إضافة النقاط للفريق الفائز
                 if winningTeam == "team1" {
@@ -319,7 +342,11 @@ class RoomManager {
                 // تحديث بيانات الغرفة
                 roomRef.updateData([
                     "teamScores": teamScores,
-                    "currentTurn": strongSelf.getNextTurn(currentTurn: document.data()?["currentTurn"] as! String)
+                    "turnPlayerId": strongSelf.getNextTurn(
+                        currentTurnPlayerId: document.data()?["turnPlayerId"] as! String,
+                        playersData: playersData // make sure you have this dictionary available here
+                    )
+
                 ]) { error in
                     if let error = error {
                         print("Error updating room data: \(error)")
@@ -332,29 +359,22 @@ class RoomManager {
     }
     
     // دالة لتحديد الفريق الفائز بناءً على اللاعب الفائز بالجولة
-    func getWinningTeam(playerId: String) -> String {
-        // فرضاً نقول إن اللاعبين 1 و 2 في فريق والفريق الآخر 3 و 4
-        if playerId == "player1" || playerId == "player2" {
-            return "team1"
-        } else {
-            return "team2"
+    func getWinningTeam(playerId: String, playersData: [String: [String: Any]]) -> String {
+        if let team = playersData[playerId]?["team"] as? Int {
+            return team == 1 ? "team1" : "team2"
         }
+        return "team1" // default
     }
+
     
     // دالة لتحديد الدور التالي
-    func getNextTurn(currentTurn: String) -> String {
-        switch currentTurn {
-        case "player1":
-            return "player2"
-        case "player2":
-            return "player3"
-        case "player3":
-            return "player4"
-        case "player4":
-            return "player1"
-        default:
-            return "player1" // إذا كان الدور غير معروف، نبدأ من اللاعب الأول
-        }
+    func getNextTurn(currentTurnPlayerId: String, playersData: [String: [String: Any]]) -> String {
+        guard let currentPlayer = playersData[currentTurnPlayerId],
+              let currentSeat = currentPlayer["seat"] as? Int else { return currentTurnPlayerId }
+        
+        let nextSeat = (currentSeat + 1) % 4
+        let nextPlayer = playersData.first { $0.value["seat"] as? Int == nextSeat }
+        return nextPlayer?.key ?? currentTurnPlayerId
     }
     
     func autoJoinOrCreateRoom(currentUserId: String, playerName: String, completion: @escaping (String?) -> Void) {
@@ -415,3 +435,4 @@ class RoomManager {
     }
 
 }
+

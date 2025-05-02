@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseDatabase
+import FirebaseAuth
 
 final class DataBaseManager {
     static let shared = DataBaseManager()
@@ -34,6 +35,19 @@ extension DataBaseManager {
             "lastName" : user.lastName,
         ])
     }
+    
+    func signOut(completion: @escaping (Bool, String) -> Void) {
+        do {
+            try Auth.auth().signOut()  // Firebase sign-out method
+            UserDefaults.standard.set(false, forKey: "isLogin")
+            print("✅ Successfully signed out.")
+            completion(true, "Successfully signed out.")  // Success callback
+        } catch let error {
+            print("❌ Sign out failed: \(error.localizedDescription)")  // Print the error if sign-out fails
+            completion(false, "Sign-out failed: \(error.localizedDescription)")  // Failure callback
+        }
+    }
+    
 }
 
 
