@@ -61,7 +61,7 @@ class GameEngine : ObservableObject {
         if let cardIndex = currentPlayer.hand.firstIndex(where: { $0.id == card.id }) {
             SoundManager.shared.playSound(named: "flipcard.mp3")
             // Remove from hand
-            let playedCard = PlayedCard(playerName: currentPlayer.name, card: card)
+            let playedCard = PlayedCard(playerName: currentPlayer.name, card: card, playerIndex: currentPlayerIndex)
             tableCards.append(playedCard)
             currentPlayer.hand.remove(at: cardIndex)
             players[currentPlayerIndex] = currentPlayer // Update
@@ -138,10 +138,14 @@ class GameEngine : ObservableObject {
             playCard(randomCard)
         }
     }
+    func cardPlayedByPlayer(index: Int) -> Card? {
+        return tableCards.first(where: { $0.playerIndex == index })?.card
+    }
 }
 
 struct PlayedCard: Identifiable {
     let id = UUID()
     let playerName: String
     let card: Card
+    let playerIndex: Int
 }
