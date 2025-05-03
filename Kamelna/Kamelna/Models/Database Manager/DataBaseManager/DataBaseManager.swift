@@ -36,6 +36,21 @@ extension DataBaseManager {
         ])
     }
     
+    func fetchUserInfo(email: String, completion: @escaping (String?, String?) -> Void) {
+        let safeEmail = email.replacingOccurrences(of: ".", with: "-").replacingOccurrences(of: "@", with: "-")
+        
+        database.child(safeEmail).observeSingleEvent(of: .value) { snapshot in
+            guard let value = snapshot.value as? [String: Any] else {
+                completion(nil, nil)
+                return
+            }
+            
+            let firstName = value["firstName"] as? String
+            let lastName = value["lastName"] as? String
+            completion(firstName, lastName)
+        }
+    }
+    
     func signOut(completion: @escaping (Bool, String) -> Void) {
         do {
             try Auth.auth().signOut()  // Firebase sign-out method

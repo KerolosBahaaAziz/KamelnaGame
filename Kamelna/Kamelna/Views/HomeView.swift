@@ -12,6 +12,8 @@ struct HomeView: View {
     
     @State var roomID : String = ""
     @State var shouldNavigate : Bool = false
+    @State var isLoading = false
+    
     var body: some View {
         NavigationStack{
             VStack(spacing: 20) {
@@ -32,7 +34,7 @@ struct HomeView: View {
                 .padding(.horizontal)
                 
                 // Profile card
-                VStack(spacing: 10) {
+                VStack(spacing: 20) {
                     Text("Kerolos Bahaa")
                         .font(.title3.bold())
                     Text("غير مشترك")
@@ -65,23 +67,7 @@ struct HomeView: View {
                 
                 // Play button
                 Button(action: {
-                    if let user = Auth.auth().currentUser {
-                        let userId = user.uid
-                        RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
-                            roomId in
-                            guard let roomId = roomId else {
-                                print("Couldn't create a room ID")
-                                return
-                            }
-                            roomID = roomId
-                            shouldNavigate = true
-                            print("Successfully Created a room \(roomId)")
-                        })
-                        print("User ID: \(userId)")
-                    } else {
-                        // Handle the case where no user is signed in
-                        print("No user is logged in. Redirect to login screen.")
-                    }
+                    playBlot()
                 }) {
                     Text("العب بلوت")
                         .font(.title3.bold())
@@ -154,11 +140,60 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .edgesIgnoringSafeArea(.bottom)
+            
+            if isLoading {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(2)
+                    Text("جاري تحميل الغرفة...")
+                        .foregroundColor(.white)
+                        .font(.headline)
+                }
+            }
+            
             NavigationLink(destination: GameView(roomId: $roomID), isActive: $shouldNavigate) {
 //                EmptyView()
             }.hidden()
         }
     }
+    
+    func playBlot() {
+           if let userId = UserDefaults.standard.string(forKey: "userId"),
+              let email = Auth.auth().currentUser?.email {
+               
+               var firstname: String = ""
+               isLoading = true
+               
+               DataBaseManager.shared.fetchUserInfo(email: email) { firstName, lastName in
+                   firstname = firstName ?? ""
+                   print("first name is: \(firstname)")
+                   
+                   RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: firstname) { roomId in
+                       guard let roomId = roomId else {
+                           print("Couldn't create a room ID")
+                           isLoading = false
+                           return
+                       }
+                       
+                       self.roomID = roomId
+                       
+                       BotsManager.shared.startBotTimerAfterCreatingRoom(roomId: roomId) {
+                           DispatchQueue.main.async {
+                               isLoading = false
+                               shouldNavigate = true
+                           }
+                       }
+                   }
+                   print("User ID: \(userId)")
+               }
+           } else {
+               print("no user id")
+           }
+       }
+    
 }
 
 struct StatView: View {

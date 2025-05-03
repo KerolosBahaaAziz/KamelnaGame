@@ -9,16 +9,23 @@ import Foundation
 import FirebaseFirestore
 
 class BotsManager{
+    static let shared = BotsManager()
     
-    func startBotTimerAfterCreatingRoom(roomId: String) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+    func startBotTimerAfterCreatingRoom(roomId: String, completion: @escaping () -> Void) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) { 
             let roomRef = Firestore.firestore().collection("rooms").document(roomId)
             
             roomRef.getDocument { snapshot, error in
                 guard let data = snapshot?.data(),
-                      var players = data["players"] as? [String: [String: Any]] else { return }
+                      var players = data["players"] as? [String: [String: Any]] else {
+                          completion()
+                          return
+                      }
 
-                if players.count >= 4 { return }
+                if players.count >= 4 {
+                    completion()
+                    return
+                }
 
                 let updatedPlayers = self.addBotsIfNeeded(to: players)
 
@@ -26,8 +33,10 @@ class BotsManager{
                     if error == nil {
                         RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
                             print ("bots added and card distributed : \(success)")
+                            completion()
                         }
-                        
+                    } else {
+                        completion()
                     }
                 }
             }
