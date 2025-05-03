@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct GameView: View {
     @StateObject private var gameEngine = GameEngine()
     @State private var playedCardID: UUID? = nil
@@ -28,14 +26,14 @@ struct GameView: View {
                 if let player = gameEngine.players[safe: 1] {
                     PlayerAvatarView(player: player, isCurrent: gameEngine.currentPlayerIndex == 1)
                         .rotationEffect(.degrees(-90))
-                        .position(x: 60, y: geometry.size.height / 2)
+                        .position(x: 60, y: geometry.size.height / 2.5)
                 }
 
                 // Right Player (Player 3)
                 if let player = gameEngine.players[safe: 2] {
                     PlayerAvatarView(player: player, isCurrent: gameEngine.currentPlayerIndex == 2)
                         .rotationEffect(.degrees(90))
-                        .position(x: geometry.size.width - 60, y: geometry.size.height / 2)
+                        .position(x: geometry.size.width - 60, y: geometry.size.height / 2.5)
                 }
 
                 // Bottom Player (Player 4 - You)
@@ -45,49 +43,67 @@ struct GameView: View {
                             .font(.headline)
                             .foregroundColor(.white)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
-                                ForEach(player.hand) { card in
-                                    AnimatedCardView(card: card, isPlayed: playedCardID == card.id)
-                                        .onTapGesture {
-                                            withAnimation {
-                                                playedCardID = card.id
-                                            }
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                                gameEngine.playCard(card)
-                                                playedCardID = nil
-                                            }
+                        let columns = [GridItem(.adaptive(minimum: 50), spacing: 0)]
+
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            ForEach(player.hand) { card in
+                                AnimatedCardView(card: card, isPlayed: playedCardID == card.id)
+                                    .onTapGesture {
+                                        withAnimation {
+                                            playedCardID = card.id
                                         }
-                                }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            gameEngine.playCard(card)
+                                            playedCardID = nil
+                                        }
+                                    }
                             }
-                            .padding(.bottom)
                         }
+                        .padding(.bottom)
+                        .padding(.horizontal)
                     }
-                    .position(x: geometry.size.width / 2, y: geometry.size.height - 100)
+                    .frame(maxWidth: .infinity)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height - 130)
+
                 }
 
                 // Center Table Cards
+                // Instead of using .position, just let the VStack/ZStack lay them out
                 VStack(spacing: 10) {
                     Text("Current Player: \(gameEngine.players[safe: gameEngine.currentPlayerIndex]?.name ?? "")")
-                        .font(.title3)
+                        .font(.subheadline)
                         .foregroundColor(.white)
 
                     Text("Time Left: \(gameEngine.timeRemaning)s")
                         .font(.subheadline)
                         .foregroundColor(gameEngine.timeRemaning <= 3 ? .red : .white)
 
-                    HStack(spacing: 15) {
-                        ForEach(gameEngine.tableCards) { playedCard in
-                            VStack(spacing: 4) {
-                                CardView(card: playedCard.card)
-                                Text(playedCard.playerName)
-                                    .font(.caption2)
-                                    .foregroundColor(.white)
-                            }
+                    ZStack {
+                        if let card = gameEngine.cardPlayedByPlayer(index: 0) {
+                            CardView(card: card)
+                                .offset(y: -260)
+                        }
+
+                        if let card = gameEngine.cardPlayedByPlayer(index: 1) {
+                            CardView(card: card)
+                                .rotationEffect(.degrees(-90))
+                                .offset(x: -120)
+                        }
+
+                        if let card = gameEngine.cardPlayedByPlayer(index: 2) {
+                            CardView(card: card)
+                                .rotationEffect(.degrees(90))
+                                .offset(x: 120)
+                        }
+
+                        if let card = gameEngine.cardPlayedByPlayer(index: 3) {
+                            CardView(card: card)
+                                .offset(y: 50)
                         }
                     }
                 }
-                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             }
             .onAppear {
                 gameEngine.setupGame(playerNames: ["Player 1", "Player 2", "Player 3", "Player 4"])
