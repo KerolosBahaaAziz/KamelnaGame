@@ -18,7 +18,6 @@ struct GameView: View {
             NavigationStack{
                 ZStack {
                     Color.green.opacity(0.4).edgesIgnoringSafeArea(.all)
-                    
                     // Player info at the top
                     VStack(spacing: 8) {
                         Text("Current Player: \(gameEngine.players[safe: gameEngine.currentPlayerIndex]?.name ?? "")")
