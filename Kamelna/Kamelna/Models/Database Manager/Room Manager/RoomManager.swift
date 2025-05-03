@@ -8,9 +8,12 @@
 import Foundation
 import FirebaseFirestore
 
-class RoomManager {
+class RoomManager : ObservableObject{
     static let shared = RoomManager()
+    @Published var listener: ListenerRegistration?
+    @Published var messages: [Message] = []
     
+    private init() {}
     func createRoom(currentUserId: String, name: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomId = generateRoomCode()
@@ -65,24 +68,24 @@ class RoomManager {
     func distributeCardsToPlayers(roomId: String, players: [String: [String: Any]], completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-
+        
         // تأكد إن عدد اللاعبين ٤ فقط
         guard players.count == 4 else {
             print("Error: Number of players must be exactly 4 to distribute cards.")
             completion(false)
             return
         }
-
+        
         let allCards = [
             "7♠️", "8♠️", "9♠️", "10♠️", "J♠️", "Q♠️", "K♠️", "A♠️",
             "7♥️", "8♥️", "9♥️", "10♥️", "J♥️", "Q♥️", "K♥️", "A♥️",
             "7♣️", "8♣️", "9♣️", "10♣️", "J♣️", "Q♣️", "K♣️", "A♣️",
             "7♦️", "8♦️", "9♦️", "10♦️", "J♦️", "Q♦️", "K♦️", "A♦️"
         ]
-
+        
         var shuffledCards = allCards.shuffled()
         var updatedPlayers = players
-
+        
         for (playerId, var playerData) in updatedPlayers {
             let hand = Array(shuffledCards.prefix(8))
             shuffledCards.removeFirst(8)
@@ -90,7 +93,7 @@ class RoomManager {
             playerData["playedCard"] = NSNull()
             updatedPlayers[playerId] = playerData
         }
-
+        
         var updates: [String: Any] = [:]
         for (playerId, playerData) in updatedPlayers {
             updates["players.\(playerId)"] = playerData
@@ -267,20 +270,20 @@ class RoomManager {
     func isTrumpCard(card: String, trumpSuit: Suit) -> Bool {
         return card.contains(trumpSuit.rawValue)
     }
-
+    
     
     // دالة لحساب قيمة الورقة
     func getCardValue(card: String, trumpSuit: String?, isTrumpGame: Bool) -> Int {
         // استخرج الرتبة والسوت
         let suits = ["♠️", "♥️", "♣️", "♦️"]
         guard let suit = suits.first(where: { card.contains($0) }) else { return 0 }
-
+        
         // استخرج الرتبة (زي "J", "10", "A"...)
         let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
         guard let rank = ranks.first(where: { card.contains($0) }) else { return 0 }
-
+        
         let isTrump = (trumpSuit != nil && suit == trumpSuit)
-
+        
         if isTrumpGame && isTrump {
             // قيم الكروت في الحكم
             switch rank {
@@ -346,7 +349,7 @@ class RoomManager {
                         currentTurnPlayerId: document.data()?["turnPlayerId"] as! String,
                         playersData: playersData // make sure you have this dictionary available here
                     )
-
+                    
                 ]) { error in
                     if let error = error {
                         print("Error updating room data: \(error)")
@@ -365,7 +368,7 @@ class RoomManager {
         }
         return "team1" // default
     }
-
+    
     
     // دالة لتحديد الدور التالي
     func getNextTurn(currentTurnPlayerId: String, playersData: [String: [String: Any]]) -> String {
@@ -380,27 +383,27 @@ class RoomManager {
     func autoJoinOrCreateRoom(currentUserId: String, playerName: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomsRef = db.collection("rooms")
-
+        
         // Fetch rooms with status "waiting"
         roomsRef.whereField("status", isEqualTo: "waiting").getDocuments { [weak self] snapshot, error in
             guard let self = self else { return }
-
+            
             if let error = error {
                 print("Error fetching rooms: \(error)")
                 completion(nil)
                 return
             }
-
+            
             let rooms = snapshot?.documents ?? []
             var joinableRoom: QueryDocumentSnapshot?
-
+            
             // Prioritize rooms that are almost full (3 players → needs 1, then 2, etc.)
             let sortedRooms = rooms.sorted { lhs, rhs in
                 let lhsPlayers = (lhs.data()["players"] as? [String: Any])?.count ?? 0
                 let rhsPlayers = (rhs.data()["players"] as? [String: Any])?.count ?? 0
                 return (4 - lhsPlayers) < (4 - rhsPlayers)  // Sort by how many players are missing
             }
-
+            
             // Loop through sorted rooms to find one with available spots
             for room in sortedRooms {
                 if let players = room.data()["players"] as? [String: Any], players.count < 4 {
@@ -408,7 +411,7 @@ class RoomManager {
                     break
                 }
             }
-
+            
             // If a joinable room is found, attempt to join it
             if let room = joinableRoom {
                 let roomId = room.documentID
@@ -433,6 +436,74 @@ class RoomManager {
             }
         }
     }
+    
+    func sendMessage(roomId: String, text: String, senderId: String, senderName: String, completion: (() -> Void)? = nil) {
+        let db = Firestore.firestore()
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return }
+        
+        let messageData: [String: Any] = [
+            "senderId": senderId,
+            "senderName": senderName,
+            "message": trimmedText,
+            "timestamp": FieldValue.serverTimestamp()
+        ]
+        
+        db.collection("rooms")
+            .document(roomId)
+            .collection("messages")
+            .addDocument(data: messageData) { error in
+                if let error = error {
+                    print("Error sending message: \(error.localizedDescription)")
+                } else {
+                    print("Message sent.")
+                    completion?()
+                }
+            }
+    }
+    
+    
+    func listenToMessages(roomId: String, onReady: (() -> Void)? = nil) {
+        let db = Firestore.firestore()
+        listener?.remove()
+        guard !roomId.isEmpty else { return }
 
+        listener = db.collection("rooms")
+            .document(roomId)
+            .collection("messages")
+            .order(by: "timestamp")
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self = self else { return }
+                guard let documents = snapshot?.documents else {
+                    print("No messages or error: \(error?.localizedDescription ?? "Unknown error")")
+                    return
+                }
+
+                self.messages = documents.compactMap { doc -> Message? in
+                    let data = doc.data()
+                    guard let senderId = data["senderId"] as? String,
+                          let senderName = data["senderName"] as? String,
+                          let text = data["message"] as? String,
+                          let timestamp = data["timestamp"] as? Timestamp else {
+                        return nil
+                    }
+
+                    return Message(
+                        id: doc.documentID,
+                        senderId: senderId,
+                        senderName: senderName,
+                        text: text,
+                        timestamp: timestamp.dateValue()
+                    )
+                }
+
+                onReady?()
+            }
+    }
+
+    func stopListening() {
+        listener?.remove()
+        listener = nil
+    }
 }
 
