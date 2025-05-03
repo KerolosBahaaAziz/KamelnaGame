@@ -15,7 +15,7 @@ class GameEngine : ObservableObject {
     @Published var tableCards: [PlayedCard] = [] // Cards played on the table
     @Published var currentPlayerIndex: Int = 0
     @Published var roundEnded: Bool = false
-    @Published var timeRemaning : Int = 5
+    @Published var timeRemaning : Int = 10
     
     private var timer : AnyCancellable?
     // MARK: - Setup Functions
