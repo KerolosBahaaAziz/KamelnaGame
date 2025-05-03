@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD616002DC4C78B00FCB72B /* FirebaseStorage */; };
 		F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB42DC22B7400B78B0F /* FirebaseAuth */; };
 		F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB62DC22B7400B78B0F /* FirebaseCore */; };
 		F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */; };
@@ -78,6 +79,7 @@
 			files = (
 				F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */,
 				F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */,
+				8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */,
 				F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */,
 				F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */,
 				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
@@ -152,6 +154,7 @@
 				F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */,
 				F5D40DE02DC2534400B78B0F /* GoogleSignIn */,
 				F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */,
+				8FD616002DC4C78B00FCB72B /* FirebaseStorage */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -444,6 +447,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Kamelna/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "نحتاج إلى الوصول إلى صورك لتغيير صورة الملف الشخصي";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -475,6 +479,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Kamelna/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "نحتاج إلى الوصول إلى صورك لتغيير صورة الملف الشخصي";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -627,6 +632,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		8FD616002DC4C78B00FCB72B /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
 		F5D40CB42DC22B7400B78B0F /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

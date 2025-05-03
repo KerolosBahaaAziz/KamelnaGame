@@ -16,8 +16,8 @@ struct ContentView: View {
     var body: some View {
 //        GameView()
         VStack{
-            GoogleSignInView()
-            Button("Create Room", action: {
+            ProfileView()
+           /* Button("Create Room", action: {
                 if let user = Auth.auth().currentUser {
                     let userId = user.uid
                     roomManager.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
@@ -33,7 +33,7 @@ struct ContentView: View {
                     // Handle the case where no user is signed in
                     print("No user is logged in. Redirect to login screen.")
                 }
-            })
+            }))*/
         }
     }
 }

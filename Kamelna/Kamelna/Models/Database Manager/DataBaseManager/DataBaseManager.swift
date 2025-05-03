@@ -55,6 +55,7 @@ struct User {
     let firstName : String
     let lastName : String
     let email : String
+    var profilePictureUrl: String? 
     var safeEmail : String {
         self.email.replacingOccurrences(of: ".", with: "-")
     }
