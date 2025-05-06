@@ -46,7 +46,9 @@ struct ContentView: View {
 //                    }
 //                }
 //            }
-        RegisterView()
+//        RegisterView()
+//        CreateRoomView()
+        LoadingScreenView()
     }
 }
 

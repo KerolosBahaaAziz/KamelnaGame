@@ -14,24 +14,26 @@ struct CreateRoomView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 248/255, green: 241/255, blue: 221/255)
-                .ignoresSafeArea()
+//            Color(red: 248/255, green: 241/255, blue: 221/255)
+//                .ignoresSafeArea()
 
+            BackgroundGradient.backgroundGradient
             VStack(spacing: 16) {
                 // Header
+                LogoView()
                 HStack {
                     Text("إنشاء جلسة")
                         .font(.title2).bold()
-                        .foregroundColor(.white)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     Spacer()
                     Text("0")
                         .padding(6)
-                        .background(Color.brown.opacity(0.3))
+                        .background(SecondaryBackgroundGradient.backgroundGradient)
                         .cornerRadius(8)
-                        .foregroundColor(.white)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                 }
                 .padding()
-                .background(Color(red: 140/255, green: 120/255, blue: 100/255))
+                .background(SecondaryBackgroundGradient.backgroundGradient)
 
                 VStack(alignment: .trailing, spacing: 20) {
                     // Session name
@@ -64,9 +66,13 @@ struct CreateRoomView: View {
                                 }
                                 .padding(6)
                                 .frame(maxWidth: .infinity)
-                                .background(gameSpeed == index ? Color.green.opacity(0.7) : Color.gray.opacity(0.2))
+                                .background(gameSpeed == index ?
+                                            SelectedButtonBackGroundColor.backgroundGradient : // Selected
+                                            UnSelectedButtonBackGroundColor.backgroundGradient // Default
+                                )
                                 .cornerRadius(10)
                                 .onTapGesture {
+                                    SoundManager.shared.playSound(named: "ButtonPressed.mp3")
                                     gameSpeed = index
                                 }
                             }
@@ -84,32 +90,33 @@ struct CreateRoomView: View {
                             .overlay(Text("كملت")
                                 .foregroundColor(.white)
                                 .padding(4)
-                                .background(Color.black.opacity(0.5))
+                                .background(BackgroundGradient.backgroundGradient)
                                 .cornerRadius(6), alignment: .bottom)
                     }
                 }
                 .padding()
-                .background(Color(red: 255/255, green: 250/255, blue: 235/255))
+                .background(SecondaryBackgroundGradient.backgroundGradient)
                 .cornerRadius(20)
                 .shadow(radius: 5)
-
                 Spacer()
 
                 Button(action: {
                     // Create session
+                    SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                 }) {
                     HStack {
                         Image(systemName: "diamond.fill")
                         Text("إنشاء الجلسة")
                     }
-                    .foregroundColor(.white)
+                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.green)
+                    .background(ButtonBackGroundColor.backgroundGradient)
                     .cornerRadius(12)
                 }
                 .padding()
             }
+            .background(BackgroundGradient.backgroundGradient)
         }
         .environment( \.layoutDirection, .rightToLeft)
     }
