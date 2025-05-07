@@ -1,37 +1,30 @@
 //
-//  RoomMessagesView.swift
+//  GeneralChatView.swift
 //  Kamelna
 //
-//  Created by Yasser Yasser on 01/05/2025.
+//  Created by Yasser Yasser on 07/05/2025.
 //
 
 import SwiftUI
-import FirebaseFirestore
 import FirebaseAuth
 
-struct Message: Identifiable {
-    var id: String
-    var senderId: String
-    var senderName: String
-    var text: String
-    var timestamp: Date
-}
-
-
-struct RoomChatView: View {
-    @Binding var roomId: String
-    @StateObject private var roomManager = RoomManager.shared
+struct GeneralChatView: View {
+    @StateObject private var chatManager = GeneralChatManager.shared
     @State private var newMessage: String = ""
     @State private var userId: String = Auth.auth().currentUser?.uid ?? ""
 
-//    var roomManager = RoomManager()
     var body: some View {
         VStack {
             LogoView()
+//            Text("General Chat")
+//                .font(.title)
+//                .bold()
+//                .padding(.top)
+
             ScrollViewReader { scrollProxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 8) {
-                        ForEach(roomManager.messages) { message in
+                        ForEach(chatManager.messages) { message in
                             HStack {
                                 if message.senderId == userId {
                                     Spacer()
@@ -72,13 +65,12 @@ struct RoomChatView: View {
                                 }
                             }
                         }
-
                     }
                     .padding()
                 }
-                .onReceive(roomManager.$messages) { messages in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if let last = messages.last {
+                .onReceive(chatManager.$messages) { messages in
+                    if let last = messages.last {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             scrollProxy.scrollTo(last.id, anchor: .bottom)
                         }
                     }
@@ -91,18 +83,17 @@ struct RoomChatView: View {
                 TextField("Enter your message", text: $newMessage)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .frame(minHeight: 30)
-                
+
                 Button {
                     let trimmedMessage = newMessage.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !trimmedMessage.isEmpty else { return }
 
-                    roomManager.sendMessage(
-                        roomId: roomId,
-                        text: newMessage,
+                    chatManager.sendMessage(
+                        text: trimmedMessage,
                         senderId: userId,
                         senderName: Auth.auth().currentUser?.displayName ?? "Anonymous"
                     ) {
-                        newMessage = "" // Clear input after sending
+                        newMessage = ""
                     }
                 } label: {
                     Image(systemName: "paperplane.fill")
@@ -113,23 +104,17 @@ struct RoomChatView: View {
             .padding(.bottom, 10)
         }
         .background(BackgroundGradient.backgroundGradient)
-        .navigationTitle("Room: \(roomId)")
         .onAppear {
             userId = Auth.auth().currentUser?.uid ?? ""
-            roomManager.messages = []
-            roomManager.listenToMessages(roomId: roomId) {
-                
-            }
+            chatManager.listenToMessages()
         }
-
         .onDisappear {
-            roomManager.stopListening()
+            chatManager.stopListening()
         }
     }
 }
 
 
 #Preview {
-    @Previewable @State var roomId: String = ""
-    RoomChatView(roomId: $roomId)
+    GeneralChatView()
 }
