@@ -17,9 +17,13 @@ struct ProfileView: View {
     @State private var showPhotoPicker = false
     @State private var showBioEditor = false
     @State private var tempBioText: String = ""
-
+    @State private var selectedRankingCardTab : String = "daily"
+    @State private var selectedRankingArranging : String = "arranging"
+    @State private var awardsSelectedTab = "الجوائز"
+    let awardsTabs = ["الجوائز", "الإنجازات", "الألقاب"]
+    
     let tabs = ["نبذة", "التصنيف", "الجوائز"]
-
+    
     var body: some View {
         VStack(spacing: 20) {
             // Top bar
@@ -27,36 +31,36 @@ struct ProfileView: View {
                 Button("تعديل") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                 }
-                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    .font(.callout.bold())
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(ButtonBackGroundColor.backgroundGradient)
-                    .cornerRadius(10)
-                    .shadow(radius: 2)
+                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                .font(.callout.bold())
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(ButtonBackGroundColor.backgroundGradient)
+                .cornerRadius(10)
+                .shadow(radius: 2)
                 
-
+                
                 Spacer()
-
+                
                 Text("الملف الشخصي")
                     .font(.title3.bold())
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-
+                
                 Spacer()
-
+                
                 Button("عودة") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                 }
-                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    .font(.callout.bold())
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(ButtonBackGroundColor.backgroundGradient)
-                    .cornerRadius(10)
-                    .shadow(radius: 2)
+                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                .font(.callout.bold())
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(ButtonBackGroundColor.backgroundGradient)
+                .cornerRadius(10)
+                .shadow(radius: 2)
             }
             .padding(.horizontal)
-
+            
             // Profile Card
             VStack(spacing: 12) {
                 HStack {
@@ -67,9 +71,9 @@ struct ProfileView: View {
                             Image(systemName: "plus")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                         )
-
+                    
                     Spacer()
-
+                    
                     Button {
                         showPhotoOptions = true
                     } label: {
@@ -86,7 +90,7 @@ struct ProfileView: View {
                                     .frame(width: 80, height: 80)
                                     .foregroundStyle(SecondaryBackgroundGradient.backgroundGradient)
                             }
-
+                            
                             Image(systemName: "camera.fill")
                                 .foregroundColor(.white)
                                 .padding(6)
@@ -104,9 +108,9 @@ struct ProfileView: View {
                         }
                         Button("إلغاء", role: .cancel) { }
                     }
-
+                    
                     Spacer()
-
+                    
                     VStack {
                         Text("مبتدئ")
                             .font(.caption)
@@ -115,7 +119,7 @@ struct ProfileView: View {
                             .padding(.vertical, 4)
                             .background(ButtonBackGroundColor.backgroundGradient)
                             .cornerRadius(10)
-
+                        
                         HStack(spacing: 2) {
                             ForEach(0..<4) { _ in
                                 Image(systemName: "suit.club.fill")
@@ -125,10 +129,10 @@ struct ProfileView: View {
                         }
                     }
                 }
-
+                
                 Text("Kerolos Bahaa")
                     .font(.headline)
-
+                
                 HStack(spacing: 30) {
                     StatView(icon: "medal.fill", value: "0", color: .yellow)
                     StatView(icon: "heart.fill", value: "0", color: .red)
@@ -142,7 +146,7 @@ struct ProfileView: View {
             .cornerRadius(20)
             .shadow(radius: 5)
             .padding(.horizontal)
-
+            
             // Tabs
             HStack {
                 ForEach(tabs, id: \.self) { tab in
@@ -161,12 +165,12 @@ struct ProfileView: View {
                     }
                 }
             }
-//            .padding(5)
-//            .padding(.horizontal)
+            //            .padding(5)
+            //            .padding(.horizontal)
             .background(ButtonBackGroundColor.backgroundGradient)
             .cornerRadius(20)
-
-
+            
+            
             // Dynamic Content
             Group {
                 if selectedTab == "نبذة" {
@@ -178,13 +182,13 @@ struct ProfileView: View {
                 }
             }
             .animation(.easeInOut, value: selectedTab)
-
+            
             Text("لقد انضممت الى كملنا بتاريخ 2025/04/22")
                 .font(.footnote)
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-
+            
             Spacer()
-
+            
             PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                 EmptyView()
             }
@@ -203,13 +207,13 @@ struct ProfileView: View {
             }
         }
         .background(BackgroundGradient.backgroundGradient)
-//        .padding(.top)
+        //        .padding(.top)
         .environment(\.layoutDirection, .rightToLeft)
         .sheet(isPresented: $showBioEditor) {
             bioEditorSheet
         }
     }
-
+    
     // MARK: - Cards
     var bioCard: some View {
         VStack {
@@ -225,7 +229,7 @@ struct ProfileView: View {
                     Text(bioText)
                         .multilineTextAlignment(.trailing)
                         .padding()
-
+                    
                     Button("تعديل") {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         tempBioText = bioText
@@ -242,46 +246,150 @@ struct ProfileView: View {
         .shadow(radius: 5)
         .padding(.horizontal)
     }
-
+    
     var rankingCard: some View {
-        VStack(spacing: 10) {
-            Text("مستواك الحالي: مبتدئ")
-                .font(.headline)
-
-            Text("لا توجد تصنيفات متاحة حالياً.")
-
+        VStack(spacing: 16) {
+            
+            // Top Tab: "الأداء" / "الترتيب"
+            HStack(spacing: 8) {
+                ForEach(["arranging", "performace"], id: \.self) { tab in
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonPressed.mp3")
+                        selectedRankingArranging = tab
+                    }) {
+                        Text(tab == "arranging" ? "الترتيب" : "الأداء")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(selectedRankingArranging == tab ? SelectedButtonBackGroundColor.backgroundGradient : UnSelectedButtonBackGroundColor.backgroundGradient)
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                            .cornerRadius(10)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            
+            // Card Content
+            VStack(spacing: 20) {
+                Text("مستواك الحالي: مبتدئ")
+                    .font(.headline)
+                    .padding()
+                
+                // Circular Progress
+                ZStack {
+                    Circle()
+                        .stroke(SecondaryBackgroundGradient.backgroundGradient, lineWidth: 10)
+                        .frame(width: 120, height: 120)
+                    
+                    Circle()
+                        .trim(from: 0.0, to: 0.7)
+                        .stroke(BackgroundGradient.backgroundGradient, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 120, height: 120)
+                    
+                    Text("250")
+                        .font(.title)
+                        .bold()
+                }
+                
+                Text("لا توجد تصنيفات متاحة حالياً.")
+                
+                // Bottom Tab: "يوميًا" / "أسبوعيًا"
+                HStack(spacing: 8) {
+                    ForEach(["daily", "weekly"], id: \.self) { tab in
+                        Button(action: {
+                            SoundManager.shared.playSound(named: "ButtonPressed.mp3")
+                            selectedRankingCardTab = tab
+                        }) {
+                            Text(tab == "daily" ? "يوميًا" : "أسبوعيًا")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(selectedRankingCardTab == tab ? SelectedButtonBackGroundColor.backgroundGradient : UnSelectedButtonBackGroundColor.backgroundGradient)
+                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                                .cornerRadius(10)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
+                .padding(.bottom)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(SecondaryBackgroundGradient.backgroundGradient)
+            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+            .cornerRadius(20)
+            .shadow(radius: 5)
+            .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(SecondaryBackgroundGradient.backgroundGradient)
-        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-        .cornerRadius(20)
-        .shadow(radius: 5)
-        .padding(.horizontal)
     }
-
+    
+    
+    
     var awardsCard: some View {
-        VStack(spacing: 10) {
-            Text("لم تحصل على أي جوائز بعد.")
+        VStack(spacing: 16) {
+            // Custom Tab Picker
+            HStack(spacing: 8) {
+                ForEach(awardsTabs, id: \.self) { tab in
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonPressed.mp3")
+                        awardsSelectedTab = tab
+                    }) {
+                        Text(tab)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(awardsSelectedTab == tab
+                                          ? SelectedButtonBackGroundColor.backgroundGradient
+                                          : UnSelectedButtonBackGroundColor.backgroundGradient)
+                            )
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            
+            // The awards card view
+            VStack(spacing: 16) {
+                ZStack {
+                    Image("cupBoard")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .opacity(0.3)
+                    
+                    Text("خزانة الجوائز فارغة")
+                        .font(.callout)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .padding(.horizontal)
+                }
+                
+                Text("لم تحصل على أي جوائز بعد.")
+                    .font(.footnote)
+                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(SecondaryBackgroundGradient.backgroundGradient)
+            .cornerRadius(20)
+            .shadow(radius: 5)
+            .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(SecondaryBackgroundGradient.backgroundGradient)
-        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-        .cornerRadius(20)
-        .shadow(radius: 5)
-        .padding(.horizontal)
     }
-
+    
     // MARK: - Bio Editor Sheet
     var bioEditorSheet: some View {
         ZStack {
             BackgroundGradient.backgroundGradient
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 16) {
                 Text("تعديل النبذة")
                     .font(.title2.bold())
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-
+                
                 ScrollView {
                     TextEditor(text: $tempBioText)
                         .frame(height: 150)
@@ -290,7 +398,7 @@ struct ProfileView: View {
                         .cornerRadius(15)
                         .foregroundColor(.black)
                 }
-
+                
                 HStack {
                     Button("إلغاء") {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
@@ -301,9 +409,9 @@ struct ProfileView: View {
                     .padding()
                     .background(ButtonBackGroundColor.backgroundGradient)
                     .cornerRadius(12)
-
+                    
                     Spacer()
-
+                    
                     Button("حفظ") {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         bioText = tempBioText

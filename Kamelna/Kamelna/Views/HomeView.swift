@@ -19,7 +19,9 @@ struct HomeView: View {
                 VStack(spacing: 20) {
                     // Top bar
                     HStack {
-                        Button { } label: {
+                        Button {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        } label: {
                             Image(systemName: "bell.fill")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.title2)
@@ -27,7 +29,9 @@ struct HomeView: View {
                         Spacer()
                         LogoView()
                         Spacer()
-                        Button { } label: {
+                        Button {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        } label: {
                             Image(systemName: "person.2.fill")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.title2)
@@ -79,6 +83,7 @@ struct HomeView: View {
                     
                     // Play button
                     Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         playBlot()
                     }) {
                         Text("العب بلوت")
@@ -96,24 +101,28 @@ struct HomeView: View {
                     // Session buttons
                     HStack(spacing: 20) {
                         Button(action: {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                             print("جلسة صوتية tapped")
                         }) {
                             SessionButton(title: "جلسة صوتية", icon: "mic.fill")
                         }
                         
                         Button(action: {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                             print("إنشاء جلسة tapped")
                         }) {
                             SessionButton(title: "إنشاء جلسة", icon: "plus.circle.fill")
                         }
                         
                         Button(action: {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                             print("لعبة ودية tapped")
                         }) {
                             SessionButton(title: "لعبة ودية", icon: "gamecontroller.fill")
                         }
                         
                         Button(action: {
+                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                             print("قائمة الجلسات tapped")
                         }) {
                             SessionButton(title: "قائمة الجلسات", icon: "list.bullet")

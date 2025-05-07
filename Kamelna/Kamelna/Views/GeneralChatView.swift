@@ -16,10 +16,9 @@ struct GeneralChatView: View {
     var body: some View {
         VStack {
             LogoView()
-//            Text("General Chat")
-//                .font(.title)
-//                .bold()
-//                .padding(.top)
+            Text("الدردشة العامة")
+                .font(.title2)
+                .bold()
 
             ScrollViewReader { scrollProxy in
                 ScrollView {

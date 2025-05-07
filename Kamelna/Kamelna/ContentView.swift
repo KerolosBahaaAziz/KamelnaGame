@@ -50,7 +50,8 @@ struct ContentView: View {
         //        CreateRoomView()
         //        LoadingScreenView()
 //        GeneralChatView()
-        RoomChatView(roomId: $roomID)
+//        RoomChatView(roomId: $roomID)
+        LoadingScreenView()
     }
 }
 
