@@ -21,7 +21,11 @@ struct GoogleSignInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                BackgroundGradient.backgroundGradient
+                    .ignoresSafeArea()
                 VStack(spacing: 20) {
+                    Spacer()
+                    LogoView()
                     Spacer()
                     
                     TextField("Email", text: $email)
@@ -39,6 +43,7 @@ struct GoogleSignInView: View {
                         .padding(.horizontal, 40)
 
                     Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonPressed.mp3")
                         print("sign in with email and password")
                         if email.isEmpty || password.isEmpty {
                             self.alertMessage = "Please fill all the fields."
@@ -63,14 +68,14 @@ struct GoogleSignInView: View {
                             .fontWeight(.semibold)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue.opacity(0.9))
-                            .foregroundColor(.white)
+                            .background(ButtonBackGroundColor.backgroundGradient)
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                             .cornerRadius(12)
                             .padding(.horizontal, 40)
                     }
                     
                     Text("OR")
-                        .foregroundColor(.black)
+                        .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
                         .padding(.top, 10)
 
                     GoogleButton {
@@ -97,10 +102,11 @@ struct GoogleSignInView: View {
                     .cornerRadius(12)
 
                     Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         self.navigateToRegister = true
                     }) {
                         Text("Don't have an account? Register")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
                             .padding(.top, 10)
                     }
                     

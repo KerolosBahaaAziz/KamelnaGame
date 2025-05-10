@@ -34,9 +34,9 @@ struct GeneralChatView: View {
 
                                         Text(message.text)
                                             .padding(10)
-                                            .background(Color.blue)
+                                            .background(ButtonBackGroundColor.backgroundGradient)
                                             .cornerRadius(10)
-                                            .foregroundColor(.white)
+                                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
 
                                         Text(message.timestamp.formatted(date: .omitted, time: .shortened))
                                             .font(.caption2)
@@ -51,9 +51,9 @@ struct GeneralChatView: View {
 
                                         Text(message.text)
                                             .padding(10)
-                                            .background(Color.gray.opacity(0.2))
+                                            .background(UnSelectedButtonBackGroundColor.backgroundGradient)
                                             .cornerRadius(10)
-                                            .foregroundColor(.black)
+                                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
 
                                         Text(message.timestamp.formatted(date: .omitted, time: .shortened))
                                             .font(.caption2)
