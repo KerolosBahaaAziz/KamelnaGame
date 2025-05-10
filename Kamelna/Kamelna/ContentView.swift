@@ -16,37 +16,43 @@ struct ContentView: View {
     @State var shouldNavigate = false
     
     var body: some View {
-//                GameView()
-//                NavigationStack{
-//                    VStack{
-//                        GoogleSignInView()
-//                        Button("Create Room", action: {
-//                            if let user = Auth.auth().currentUser {
-//                                let userId = user.uid
-//                                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
-//                                    roomId in
-//                                    guard let roomId = roomId else {
-//                                        print("Couldn't create a room ID")
-//                                        return
-//                                    }
-//                                    roomID = roomId
-//                                    shouldNavigate = true
-//                                    print("Successfully Created a room \(roomId)")
-//                                })
-//                                print("User ID: \(userId)")
-//                            } else {
-//                                // Handle the case where no user is signed in
-//                                print("No user is logged in. Redirect to login screen.")
-//                            }
-//                        })
-//                        NavigationLink(destination: RoomChatView(roomId: $roomID), isActive: $shouldNavigate) {
-//                            EmptyView()
-//                        }
-//                        .hidden()
-//                    }
-//                }
-//            }
-        RegisterView()
+        //                GameView()
+        //                NavigationStack{
+        //                    VStack{
+        //                        GoogleSignInView()
+        //                        Button("Create Room", action: {
+        //                            if let user = Auth.auth().currentUser {
+        //                                let userId = user.uid
+        //                                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
+        //                                    roomId in
+        //                                    guard let roomId = roomId else {
+        //                                        print("Couldn't create a room ID")
+        //                                        return
+        //                                    }
+        //                                    roomID = roomId
+        //                                    shouldNavigate = true
+        //                                    print("Successfully Created a room \(roomId)")
+        //                                })
+        //                                print("User ID: \(userId)")
+        //                            } else {
+        //                                // Handle the case where no user is signed in
+        //                                print("No user is logged in. Redirect to login screen.")
+        //                            }
+        //                        })
+        //                        NavigationLink(destination: RoomChatView(roomId: $roomID), isActive: $shouldNavigate) {
+        //                            EmptyView()
+        //                        }
+        //                        .hidden()
+        //                    }
+        //                }
+        //            }
+        //        RegisterView()
+        //        CreateRoomView()
+        //        LoadingScreenView()
+//        GeneralChatView()
+//        RoomChatView(roomId: $roomID)
+//        LoadingScreenView()
+        HomeView()
     }
 }
 
