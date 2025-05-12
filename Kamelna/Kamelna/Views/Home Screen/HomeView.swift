@@ -176,7 +176,7 @@ struct HomeView: View {
                     }
                 }
                 
-            NavigationLink(destination: EmptyView(), isActive: $shouldNavigate) {
+            NavigationLink(destination: LoadingScreenView(), isActive: $shouldNavigate) {
                     //                EmptyView()
 //                    GameView(roomId: $roomID)
                 }.hidden()
