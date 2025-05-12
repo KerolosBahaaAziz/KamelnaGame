@@ -4,7 +4,7 @@
 //
 //  Created by Yasser Yasser on 02/05/2025.
 //
-
+/*
 import SwiftUI
 
 struct PlayerAvatarView: View {
@@ -35,3 +35,4 @@ struct PlayerAvatarView: View {
 #Preview {
     PlayerAvatarView(player: Player(name: "Youssab", hand: []), isCurrent: true)
 }
+*/

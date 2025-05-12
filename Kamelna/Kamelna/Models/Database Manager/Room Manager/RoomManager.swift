@@ -14,6 +14,171 @@ class RoomManager : ObservableObject{
     @Published var messages: [Message] = []
     
     private init() {}
+  
+    func playCard(roomId: String, playerId: String, card: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        roomRef.getDocument { document, error in
+            guard let document = document, document.exists,
+                  var roomData = document.data(),
+                  var players = roomData["players"] as? [String: [String: Any]],
+                  var playerData = players[playerId],
+                  var hand = playerData["hand"] as? [String] else {
+                print("Error: Player or room not found")
+                completion(false)
+                return
+            }
+            
+            // تحقق من أن الورقة موجودة في يد اللاعب
+            guard hand.contains(card) else {
+                print("Card not found in player's hand")
+                completion(false)
+                return
+            }
+
+            // إزالة الورقة من اليد
+            hand.removeAll { $0 == card }
+            playerData["hand"] = hand
+            players[playerId] = playerData
+            
+            // أضف الورقة إلى currentTrick
+            var currentTrick = roomData["currentTrick"] as? [String: Any] ?? [:]
+            var cards = currentTrick["cards"] as? [[String: String]] ?? []
+            cards.append(["playerId": playerId, "card": card])
+            currentTrick["cards"] = cards
+            
+            
+            // تحديث Firestore
+            roomRef.updateData([
+                "players": players,
+                "currentTrick": currentTrick,
+                "players.\(playerId).hand": hand
+            ]) { error in
+                if let error = error {
+                    print("Error playing card: \(error)")
+                    completion(false)
+                } else {
+                    self.advanceTurn(toNextPlayerIn: roomId)
+                    print("Card \(card) played by player \(playerId)")
+                    completion(true)
+                    
+                }
+            }
+        }
+    }
+
+    func getRoomInfo(roomId: String, completion: @escaping ([String: Any]?) -> Void) {
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        roomRef.getDocument { document, error in
+            if let error = error {
+                print("Error fetching room info: \(error)")
+                completion(nil)
+                return
+            }
+            
+            guard let document = document, document.exists else {
+                print("Room not found")
+                completion(nil)
+                return
+            }
+            
+            completion(document.data())
+        }
+    }
+
+    func resetCurrentTrick(roomId: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        roomRef.updateData([
+            "currentTrick.cards": []
+        ]) { error in
+            if let error = error {
+                print("Error resetting current trick: \(error)")
+                completion(false)
+            } else {
+                print("Current trick reset successfully")
+                completion(true)
+            }
+        }
+    }
+
+    func listenToRoom(roomId: String, onChange: @escaping ([String: Any]?) -> Void) {
+        let db = Firestore.firestore()
+        db.collection("rooms").document(roomId).addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("Error listening to room: \(error)")
+                onChange(nil)
+                return
+            }
+            
+            guard let snapshot = snapshot, snapshot.exists else {
+                print("Room snapshot doesn't exist")
+                onChange(nil)
+                return
+            }
+            
+            onChange(snapshot.data())
+        }
+    }
+
+    func isPlayerTurn(roomId: String, playerId: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        db.collection("rooms").document(roomId).getDocument { snapshot, error in
+            if let data = snapshot?.data(),
+               let currentTurn = data["turnPlayerId"] as? String {
+                print("currentTurn \(currentTurn)")
+                completion(currentTurn == playerId)
+            } else {
+                completion(false)
+            }
+        }
+    }
+
+    func advanceTurn(toNextPlayerIn roomId: String) {
+        let db = Firestore.firestore()
+        db.collection("rooms").document(roomId).getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                  let players = data["playerOrder"] as? [String],
+                  let currentTurn = data["turnPlayerId"] as? String,
+                  let index = players.firstIndex(of: currentTurn),
+                  let currentInTrick = data["currentTrick"] as? [String: Any],
+                  let cardsArray = currentInTrick["cards"] as? [[String: String]] ,
+                  let index = players.firstIndex(of: currentTurn) else {
+                      print("did not enter in advance turn function")
+                return
+            }
+            
+            if let cardsArray = currentInTrick["cards"] as? [[String: String]], cardsArray.count >= 4 {
+                // Build a map: [playerId: card]
+                var cardsInTrick: [String: String] = [:]
+                for entry in cardsArray {
+                    if let pid = entry["playerId"], let c = entry["card"] {
+                        cardsInTrick[pid] = c
+                    }
+                }
+
+                // End of trick
+                RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: .hearts)
+                return
+            }
+            
+            
+            let nextIndex = (index + 1) % players.count
+            let nextPlayer = players[nextIndex]
+            print("now turn :\( players[nextIndex])")
+            db.collection("rooms").document(roomId).updateData(["turnPlayerId": nextPlayer]){ error in
+                if error == nil {
+                    RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                }
+            }
+        }
+    }
+
+  
     func createRoom(currentUserId: String, name: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomId = generateRoomCode()
@@ -26,7 +191,7 @@ class RoomManager : ObservableObject{
             "status": RoomStatus.waiting.rawValue, // ممكن تبقى: waiting / playing / ended
             "gameType": "baloot",
             "trumpSuit": NSNull(), // لسه متحددش
-            "turnPlayerId": NSNull(), // لسه متبدأش اللعبة
+            "turnPlayerId": currentUserId, // لسه متبدأش اللعبة
             "roundNumber": 1, // يبدأ من الجولة 1
             "teamScores": [
                 "team1": 0, // فريق 1 يبدأ من صفر
@@ -46,6 +211,7 @@ class RoomManager : ObservableObject{
                 "cards": [] // هيتضاف كل لاعب يلعب
             ],
             "trickWinner": NSNull(),
+            "playerOrder": [currentUserId],
             "history": [:] // ممكن نحط كل تريك بعد ما يخلص هنا
         ]
         
@@ -56,9 +222,34 @@ class RoomManager : ObservableObject{
             } else {
                 print("Room created with ID: \(roomId)")
                 completion(roomId)
+                RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+
             }
         }
     }
+    
+    func checkIfIsBotTurn(roomId: String) {
+        let roomRef = Firestore.firestore().collection("rooms").document(roomId)
+
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                  let turnPlayerId = data["turnPlayerId"] as? String,
+                  let players = data["players"] as? [String: [String: Any]],
+                  let playerData = players[turnPlayerId],
+                  let isBot = playerData["isBot"] as? Bool,
+                  isBot else {
+                return
+            }
+
+            print("It's bot \(turnPlayerId)'s turn. Triggering bot logic...")
+            
+            // Add small delay for realism
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                BotsManager.shared.playBotTurn(playerId: turnPlayerId, roomId: roomId)
+            }
+        }
+    }
+
     
     private func generateRoomCode(length: Int = 5) -> String {
         let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -155,7 +346,7 @@ class RoomManager : ObservableObject{
             ]
             
             // تحديث بيانات الغرفة في Firestore
-            roomRef.updateData(["players": playersData]) { error in
+            roomRef.updateData(["players": playersData, "playerOrder": FieldValue.arrayUnion([currentUserId])]) { error in
                 if let error = error {
                     print("Error joining room: \(error)")
                     completion(false)
@@ -312,54 +503,43 @@ class RoomManager : ObservableObject{
     func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
+
+        guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
+            print("Could not determine trick winner.")
+            return
+        }
+        print("player win is: \(winnerPlayerId)")
         
-        // حساب الفائز في الجولة
-        if let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) {
-            
-            // جلب بيانات الغرفة
-            roomRef.getDocument {[weak self] document, error in
-                guard let strongSelf = self else { return }
-                if let error = error {
-                    print("Error fetching room data: \(error)")
-                    return
-                }
-                
-                guard let document = document, document.exists else {
-                    print("Room not found")
-                    return
-                }
-                
-                var playersData = document.data()?["players"] as? [String: [String: Any]] ?? [:]
-                var teamScores = document.data()?["teamScores"] as? [String: Int] ?? ["team1": 0, "team2": 0]
-                
-                // تحديد الفريق الفائز بالجولة بناءً على الفائز
-                let winningTeam = strongSelf.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
-                
-                // إضافة النقاط للفريق الفائز
-                if winningTeam == "team1" {
-                    teamScores["team1"] = (teamScores["team1"] ?? 0) + 10  // مثال على إضافة 10 نقاط
-                } else {
-                    teamScores["team2"] = (teamScores["team2"] ?? 0) + 10  // مثال على إضافة 10 نقاط
-                }
-                
-                // تحديث بيانات الغرفة
-                roomRef.updateData([
-                    "teamScores": teamScores,
-                    "turnPlayerId": strongSelf.getNextTurn(
-                        currentTurnPlayerId: document.data()?["turnPlayerId"] as! String,
-                        playersData: playersData // make sure you have this dictionary available here
-                    )
-                    
-                ]) { error in
-                    if let error = error {
-                        print("Error updating room data: \(error)")
-                    } else {
-                        print("Round ended, scores updated, and turn passed")
-                    }
+        roomRef.getDocument { document, error in
+            guard let doc = document, doc.exists,
+                  var playersData = doc.data()?["players"] as? [String: [String: Any]],
+                  var teamScores = doc.data()?["teamScores"] as? [String: Int],
+                  let round = doc.data()?["roundNumber"] as? Int else {
+                return
+            }
+
+            let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
+
+            if winningTeam == "team1" {
+                teamScores["team1"] = (teamScores["team1"] ?? 0) + 10
+            } else {
+                teamScores["team2"] = (teamScores["team2"] ?? 0) + 10
+            }
+
+            roomRef.updateData([
+                "turnPlayerId": winnerPlayerId,
+                "currentTrick": ["cards": [:]],
+                "roundNumber": round + 1,
+                "teamScores": teamScores
+            ]) { error in
+                if error == nil {
+                    print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
+                    RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
                 }
             }
         }
     }
+
     
     // دالة لتحديد الفريق الفائز بناءً على اللاعب الفائز بالجولة
     func getWinningTeam(playerId: String, playersData: [String: [String: Any]]) -> String {

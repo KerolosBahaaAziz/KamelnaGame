@@ -7,9 +7,12 @@
 
 import Foundation
 
-struct Player : Identifiable {
-    let id = UUID()
-    let name : String
-    var hand : [Card]
-    var score: Int = 0
+struct Player: Identifiable, Codable {
+    var id: String
+    var name: String
+    var seat: Int
+    var hand: [String]
+    var team: Int
+    var score: Int
+    var isReady: Bool
 }

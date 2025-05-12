@@ -10,9 +10,18 @@ import FirebaseAuth
 
 struct HomeView: View {
     
-    @State var roomID : String = ""
+    @State var roomID : String? = nil
     @State var shouldNavigate : Bool = false
     @State var isLoading = false
+    @ViewBuilder
+    var destinationView: some View {
+        if let roomID = roomID,
+           let playerID = Auth.auth().currentUser?.uid {
+            GameView(viewModel: GameViewModel(roomId: roomID, playerId: playerID))
+        } else {
+            EmptyView()
+        }
+    }
     
     var body: some View {
         NavigationStack{
@@ -154,9 +163,16 @@ struct HomeView: View {
                 }
             }
             
-            NavigationLink(destination: GameView(roomId: $roomID), isActive: $shouldNavigate) {
-//                EmptyView()
-            }.hidden()
+            NavigationLink(
+                destination: destinationView,
+                isActive: $shouldNavigate
+            ) {
+                EmptyView()
+            }
+            .hidden()
+
+           
+
         }
     }
     

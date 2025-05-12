@@ -36,3 +36,21 @@ struct Card : Identifiable, Codable {
     }
 }
 
+extension Card {
+    static func from(string: String) -> Card? {
+        let valuePart = String(string.prefix { $0.isNumber || "JQKA".contains($0) })
+        let suitPart = String(string.dropFirst(valuePart.count))
+
+        guard let value = CardValue(rawValue: valuePart),
+              let suit = Suit.allCases.first(where: { $0.rawValue == suitPart }) else {
+            return nil
+        }
+
+        return Card(suit: suit, value: value)
+    }
+
+    func toString() -> String {
+        return value.rawValue + suit.rawValue
+    }
+}
+

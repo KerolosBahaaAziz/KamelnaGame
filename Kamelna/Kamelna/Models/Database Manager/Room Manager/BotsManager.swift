@@ -12,30 +12,43 @@ class BotsManager{
     static let shared = BotsManager()
     
     func startBotTimerAfterCreatingRoom(roomId: String, completion: @escaping () -> Void) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20) { 
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             let roomRef = Firestore.firestore().collection("rooms").document(roomId)
             
             roomRef.getDocument { snapshot, error in
                 guard let data = snapshot?.data(),
-                      var players = data["players"] as? [String: [String: Any]] else {
-                          completion()
-                          return
-                      }
+                      var players = data["players"] as? [String: [String: Any]],
+                      var playerOrder = data["playerOrder"] as? [String] else {
+                    completion()
+                    return
+                }
 
                 if players.count >= 4 {
                     completion()
                     return
                 }
 
+                // Add bots
                 let updatedPlayers = self.addBotsIfNeeded(to: players)
+                let updatedPlayerOrder = playerOrder + updatedPlayers.keys.filter {
+                    !playerOrder.contains($0) && $0.starts(with: "bot")
+                }
 
-                roomRef.updateData(["players": updatedPlayers]) { error in
-                    if error == nil {
-                        RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
-                            print ("bots added and card distributed : \(success)")
-                            completion()
-                        }
-                    } else {
+                // Update Firestore
+                roomRef.updateData([
+                    "players": updatedPlayers,
+                    "playerOrder": updatedPlayerOrder
+                ]) { error in
+                    if let error = error {
+                        print("Error updating room: \(error)")
+                        completion()
+                        return
+                    }
+
+                    // Distribute cards
+                    RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
+                        
+                        print("Bots added: \(updatedPlayers.count - players.count), cards distributed: \(success)")
                         completion()
                     }
                 }
@@ -71,33 +84,49 @@ class BotsManager{
                   var players = data["players"] as? [String: [String: Any]],
                   var bot = players[playerId],
                   var hand = bot["hand"] as? [String],
-                  let firstPlayerId = data["firstPlayerInTrick"] as? String,
-                  let firstCard = (data["cardsInTrick"] as? [String: String])?[firstPlayerId] else {
+                  let currentTurnId = data["turnPlayerId"] as? String,
+                  currentTurnId == playerId else {
+                print("Bot \(playerId) tried to play, but it's not its turn or data missing.")
                 return
             }
-
-            // نوع الورقة المطلوبة (نفس نوع أول لاعب في الجولة)
-            let requiredSuit = String(firstCard.last!)  // مثال: "7H" → "H"
             
-            // حاول يلاقي ورقة من نفس النوع
-            let validCards = hand.filter { $0.hasSuffix(requiredSuit) }
-            let cardToPlay = validCards.first ?? hand.first  // لو مفيش من نفس النوع، العب أي ورقة
-
-            guard let selectedCard = cardToPlay else { return }
+            // Get current trick info
+            var currentTrick = data["currentTrick"] as? [String: Any] ?? [:]
+            var cards = currentTrick["cards"] as? [[String: String]] ?? []
+            
+            // Determine required suit
+            var requiredSuit: String? = nil
+            if let firstCard = cards.first?["card"] {
+                requiredSuit = String(firstCard.suffix(1)) // e.g. "7H" → "H"
+            }
+            
+            // Choose a card to play
+            let validCards = requiredSuit != nil ? hand.filter { $0.hasSuffix(requiredSuit!) } : hand
+            guard let selectedCard = validCards.first ?? hand.first else {
+                print("Bot \(playerId) has no cards to play.")
+                return
+            }
+            
+            // Update hand and trick
             hand.removeAll { $0 == selectedCard }
             bot["hand"] = hand
-            bot["playedCard"] = selectedCard
             players[playerId] = bot
-
-            var cardsInTrick = data["cardsInTrick"] as? [String: String] ?? [:]
-            cardsInTrick[playerId] = selectedCard
-
+            cards.append(["playerId": playerId, "card": selectedCard])
+            currentTrick["cards"] = cards
+            
+            // Commit updates
             roomRef.updateData([
                 "players": players,
-                "cardsInTrick": cardsInTrick
-            ]) { _ in
-                print("Bot \(playerId) played \(selectedCard)")
+                "currentTrick": currentTrick
+            ]) { error in
+                if let error = error {
+                    print("Error updating bot play: \(error.localizedDescription)")
+                } else {
+                    print("Bot \(playerId) played \(selectedCard)")
+                    RoomManager.shared.advanceTurn(toNextPlayerIn: roomId)
+                }
             }
         }
     }
+
 }
