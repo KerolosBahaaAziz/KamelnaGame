@@ -176,8 +176,9 @@ struct HomeView: View {
                     }
                 }
                 
-                NavigationLink(destination: GameView(roomId: $roomID), isActive: $shouldNavigate) {
+            NavigationLink(destination: EmptyView(), isActive: $shouldNavigate) {
                     //                EmptyView()
+//                    GameView(roomId: $roomID)
                 }.hidden()
             }
     }
