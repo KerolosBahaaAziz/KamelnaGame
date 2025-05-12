@@ -29,9 +29,10 @@ struct GameSceneView: View {
     var otherPlayers: [Player] {
         guard let roomData = viewModel.roomData,
               let players = roomData["players"] as? [String: [String: Any]] else {
+            print("Error: roomData is  nil), players not found or invalid")
             return []
         }
-        
+        print("Players data : \(players)")
         return players.compactMap { playerId, data in
             guard playerId != viewModel.playerId else { return nil }
             return Player(
