@@ -22,7 +22,11 @@ struct RegisterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                BackgroundGradient.backgroundGradient
+                    .ignoresSafeArea()
                 VStack(spacing: 20) {
+                    Spacer()
+                    LogoView()
                     Spacer()
                     
                     TextField("First Name", text: $firstName)
@@ -52,6 +56,7 @@ struct RegisterView: View {
                         .padding(.horizontal, 40)
 
                     Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonPressed.mp3")
                         print("Register with email and password")
                         if firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty {
                             self.alertMessage = "Please fill all the fields."
@@ -69,8 +74,8 @@ struct RegisterView: View {
                             .fontWeight(.semibold)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue.opacity(0.9))
-                            .foregroundColor(.white)
+                            .background(ButtonBackGroundColor.backgroundGradient)
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                             .cornerRadius(12)
                             .padding(.horizontal, 40)
                     }//.disabled(firstName.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty)
@@ -79,10 +84,11 @@ struct RegisterView: View {
 
                     Button(action: {
                         // Navigate manually to Sign In screen
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         self.navigateToSignIn = true
                     }) {
                         Text("Already have an account? Sign In")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
                             .padding(.top, 10)
                     }
                     
