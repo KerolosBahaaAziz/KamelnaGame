@@ -34,6 +34,7 @@ extension DataBaseManager {
             "firstName" : user.firstName,
             "lastName" : user.lastName,
         ])
+        UserManager.shared.saveUser(user: user)
     }
     
     func fetchUserInfo(email: String, completion: @escaping (String?, String?) -> Void) {
@@ -62,16 +63,15 @@ extension DataBaseManager {
             completion(false, "Sign-out failed: \(error.localizedDescription)")  // Failure callback
         }
     }
-    
-}
-
-
-struct User {
-    let firstName : String
-    let lastName : String
-    let email : String
-    var profilePictureUrl: String? 
-    var safeEmail : String {
-        self.email.replacingOccurrences(of: ".", with: "-")
+    func deleteUser(user: User) {
+        database.child(user.safeEmail).removeValue { error, _ in
+            if let error = error {
+                print("Error deleting user data: \(error.localizedDescription)")
+            } else {
+                print("User data successfully deleted from Realtime Database")
+            }
+        }
     }
 }
+
+
