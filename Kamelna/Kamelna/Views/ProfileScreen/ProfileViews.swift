@@ -8,7 +8,7 @@
 import SwiftUI
 import PhotosUI
 
-struct ProfileView: View {
+struct ProfileViews: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var selectedImageData: Data? = nil
     @State private var showPhotoOptions = false

@@ -10,7 +10,7 @@ import PhotosUI
 import FirebaseFirestore
 import FirebaseStorage
 
-struct ProfilePictureView: View {
+struct ProfilePictureViews: View {
     @State private var selectedImage: UIImage?
     @State private var selectedItem: PhotosPickerItem?
     @State private var isUploading = false
