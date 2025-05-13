@@ -15,9 +15,15 @@ class EmailAuthHandler{
     static let shared = EmailAuthHandler()
     
     func registerWithEmail(email: String, password: String, firstName: String, lastName: String, completion: @escaping (Bool, String) -> Void) {
+        let userAdded = User(firstName: firstName,
+                             lastName: lastName,
+                             email: email
+                             )
         // 1. Check if user already exists
         DataBaseManager.shared.userExists(with: email) { exists in
             if exists {
+                // Uncomment to delete the user for debugging purposes
+                //DataBaseManager.shared.deleteUser(user: userAdded)
                 let errorMessage = "❌ User already exists"
                 print(errorMessage)
                 completion(false, errorMessage)
@@ -41,10 +47,7 @@ class EmailAuthHandler{
                 }
                 
                 // 3. Save user info to your database
-                let userAdded = User(firstName: firstName,
-                                     lastName: lastName,
-                                     email: email
-                                     )
+                
                 DataBaseManager.shared.addUser(user: userAdded)
                 
                 // 4. Send email verification
@@ -69,7 +72,7 @@ class EmailAuthHandler{
                 completion(false, errorMessage)
                 return
             }
-            
+    
             guard let user = authResult?.user else {
                 let errorMessage = "❌ No user returned"
                 print(errorMessage)
