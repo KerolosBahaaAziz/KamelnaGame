@@ -12,6 +12,7 @@ struct GameSceneView: View {
         guard let roomData = viewModel.roomData,
               let players = roomData["players"] as? [String: [String: Any]],
               let playerData = players[viewModel.playerId] else {
+            print("Error: Failed to load current player data")
             return nil
         }
         
@@ -91,8 +92,10 @@ struct GameSceneView: View {
                         .animation(.easeInOut, value: showTurnMessage)
                         .onAppear {
                             if showTurnMessage {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                    showTurnMessage = false
+                                withAnimation(.easeInOut){
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        showTurnMessage = false
+                                    }
                                 }
                             }
                         }
@@ -104,9 +107,10 @@ struct GameSceneView: View {
         .onAppear {
             viewModel.startListeningForRoomUpdates()
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 
 #Preview {
-    GameSceneView(roomId: "room1", playerId: "player1")
+    GameSceneView(roomId: "YOJWLQ", playerId: "IVV3Xu3XKodrbweHBTHD7V6CL6s1")
 }

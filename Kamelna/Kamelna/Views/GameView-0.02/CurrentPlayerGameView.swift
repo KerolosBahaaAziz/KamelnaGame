@@ -23,7 +23,7 @@ struct CurrentPlayerGameView: View {
             
             Text("فريق: \(player.team) | النقاط: \(player.score)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
             
             Spacer()
             

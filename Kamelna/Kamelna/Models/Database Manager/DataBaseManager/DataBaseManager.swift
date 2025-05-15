@@ -37,7 +37,7 @@ extension DataBaseManager {
     }
     
     func fetchUserInfo(email: String, completion: @escaping (String?, String?) -> Void) {
-        let safeEmail = email.replacingOccurrences(of: ".", with: "-").replacingOccurrences(of: "@", with: "-")
+        let safeEmail = email.replacingOccurrences(of: ".", with: "-")
         
         database.child(safeEmail).observeSingleEvent(of: .value) { snapshot in
             guard let value = snapshot.value as? [String: Any] else {

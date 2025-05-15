@@ -77,13 +77,13 @@ struct ContentView: View {
         //                }
         //            }
         //        RegisterView()
-        //        CreateRoomView()
+//                CreateRoomView()
         //        LoadingScreenView()
 //        GeneralChatView()
 //        RoomChatView(roomId: $roomID)
 //        LoadingScreenView()
-//        HomeView()
-        GameSceneView(roomId: "PNJUD", playerId: "lX91ZYxO5Tbx31lYNVVrXB7yJsM2")
+        HomeView()
+//        GameSceneView(roomId: "HRJWI", playerId: "GAiUGzDe9HUFFwsN3U3pSMH9xd43")
     }
 }
 

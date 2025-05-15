@@ -27,7 +27,8 @@ struct OtherPlayerView: View {
 
             Text("فريق: \(player.team) | نقاط: \(player.score)")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
+                .lineLimit(1)
         }
     }
 }
