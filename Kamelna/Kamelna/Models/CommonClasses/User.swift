@@ -18,6 +18,7 @@ struct User {
     var hearts = 0
     var rank = "مبتدئ"
     var rankPoints = 0
-   
+    var medal = 0
+    var creationDate : String
 
 }

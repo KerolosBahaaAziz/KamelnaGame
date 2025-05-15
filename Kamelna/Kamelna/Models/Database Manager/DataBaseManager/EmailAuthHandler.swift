@@ -15,15 +15,18 @@ class EmailAuthHandler{
     static let shared = EmailAuthHandler()
     
     func registerWithEmail(email: String, password: String, firstName: String, lastName: String, completion: @escaping (Bool, String) -> Void) {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        let tempDate = formatter.string(from: Date())
         let userAdded = User(firstName: firstName,
                              lastName: lastName,
-                             email: email
-                             )
+                             email: email,
+                             creationDate: tempDate)
         // 1. Check if user already exists
         DataBaseManager.shared.userExists(with: email) { exists in
             if exists {
                 // Uncomment to delete the user for debugging purposes
-                //DataBaseManager.shared.deleteUser(user: userAdded)
+                DataBaseManager.shared.deleteUser(user: userAdded)
                 let errorMessage = "❌ User already exists"
                 print(errorMessage)
                 completion(false, errorMessage)
@@ -85,19 +88,13 @@ class EmailAuthHandler{
                 print("✅ Signed in with email: \(user.email ?? "Unknown")")
                 completion(true, "✅ Welcome")
                 
-                guard let userID = authResult?.user.uid else {
+                guard (authResult?.user.uid) != nil else {
                     completion(false, "User not found")
                     return
                 }
                 
                 DataBaseManager.shared.userExists(with: email) { exists in
                     if exists {
-
-                        let user = User(firstName: "kerolos" ,
-                                        lastName: "",
-                                        email: email
-                                        )
-                        DataBaseManager.shared.addUser(user: user)
                     }else{
                         print("already exist")
                     }

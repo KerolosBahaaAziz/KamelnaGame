@@ -34,6 +34,7 @@ extension DataBaseManager {
             "firstName" : user.firstName,
             "lastName" : user.lastName,
         ])
+   
         UserManager.shared.saveUser(user: user)
     }
     
