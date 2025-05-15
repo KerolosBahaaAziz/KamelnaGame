@@ -86,8 +86,10 @@ struct ContentView: View {
 //        GeneralChatView()
 //        RoomChatView(roomId: $roomID)
 //        LoadingScreenView()
+      //ProfileView()
+        
+        
         HomeView()
-//        GameSceneView(roomId: "HRJWI", playerId: "GAiUGzDe9HUFFwsN3U3pSMH9xd43")
 
     }
 }

@@ -1,9 +1,3 @@
-//
-//  Player.swift
-//  Kamelna
-//
-//  Created by Yasser Yasser on 28/04/2025.
-//
 
 import Foundation
 
