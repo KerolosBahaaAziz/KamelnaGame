@@ -10,6 +10,7 @@ class UserManager{
     private let db = Firestore.firestore()
     private let collection = "User_Data"
     static let shared = UserManager()
+    static var docId : String?
     
     private init(){}
     func parseUserDocument(_ document: DocumentSnapshot) -> User? {
@@ -54,11 +55,13 @@ class UserManager{
                 
                 guard let document = snapshot?.documents.first else {
                     print("No user found with that email.")
+                    
                     completion(nil)
                     return
                 }
                 
                 let user = self.parseUserDocument(document)
+                UserManager.docId=document.documentID
                 completion(user)
             }
     }
@@ -88,6 +91,20 @@ class UserManager{
         
     }
     
+    func userDocumentRef(for user: User) -> DocumentReference {
+        
+        return db.collection(collection).document(UserManager.docId ?? "")
+    }
+    // remeber to add type check in the function in the future
+    func updateUserData(user: User, enumField: UserFireStoreAttributes,value: Any){
+        userDocumentRef(for: user).updateData([enumField.rawValue : value]){ error in
+            if let error = error {
+                print("Error updating user: \(error.localizedDescription)")
+            } else {
+                print("User updated with: \(value)")
+            }
+        }
+    }
     
     
     

@@ -61,7 +61,7 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showBioEditor) {
-            BioEditorSheet(tempBioText: $tempBioText, showBioEditor: $showBioEditor)
+            BioEditorSheet(tempBioText: $tempBioText, showBioEditor: $showBioEditor, profileViewModel: profileViewModel)
         }
         .background(BackgroundGradient.backgroundGradient)
         .environment(\.layoutDirection, .rightToLeft)

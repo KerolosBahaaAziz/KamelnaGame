@@ -15,7 +15,7 @@ struct BioCardView: View {
     var body: some View {
         VStack {
             if let bioText = profileViewModel.user?.brief {
-                if bioText.isEmpty {
+                if tempBioText.isEmpty {
                     Button("اضغط هنا لإضافة نبذة عامة") {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         tempBioText = ""
@@ -24,20 +24,23 @@ struct BioCardView: View {
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                 } else {
                     VStack(spacing: 8) {
-                        Text(bioText)
-                            .multilineTextAlignment(.trailing)
-                            .padding()
-
-                        Button("تعديل") {
+                        Button {
                             SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                             tempBioText = bioText
                             showBioEditor = true
+                        } label: {
+                            Text(tempBioText)
+                                .multilineTextAlignment(.trailing)
+                                .padding()
+                                .foregroundStyle(.black)
+                            
                         }
-                        .font(.caption)
-                        .foregroundColor(.brown)
+                        
+                        
                     }
                 }
             }
+       
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SecondaryBackgroundGradient.backgroundGradient)

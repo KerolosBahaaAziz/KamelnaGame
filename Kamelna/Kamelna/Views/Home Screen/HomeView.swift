@@ -13,7 +13,7 @@ struct HomeView: View {
     @State var roomID : String = ""
     @State var shouldNavigate : Bool = false
     @State var isLoading = false
-    
+    @State var showProfile = false
     var body: some View {
         NavigationStack{
                 VStack(spacing: 20) {
@@ -29,13 +29,20 @@ struct HomeView: View {
                         Spacer()
                         LogoView()
                         Spacer()
+                        
+
                         Button {
                             SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                            showProfile.toggle()
+                            
                         } label: {
                             Image(systemName: "person.2.fill")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.title2)
                         }
+                        NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                                  EmptyView()
+                              }
                     }
                     .padding(.horizontal)
 //                    .padding(.top , 20)

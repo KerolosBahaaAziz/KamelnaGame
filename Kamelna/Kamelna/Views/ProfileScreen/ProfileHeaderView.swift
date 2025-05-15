@@ -18,20 +18,28 @@ struct ProfileHeaderView: View {
             HStack {
                 Button("تعديل") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                }
-               
+                }.padding(5)
+                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    
                 
                 Spacer()
                 
                 Text("الملف الشخصي")
                     .font(.title3.bold())
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            
                 Spacer()
                 
                 Button("عودة") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                 }
+                .padding(5)
+                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                    .background(ButtonBackGroundColor.backgroundGradient)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                
             }
             .padding(.horizontal)
