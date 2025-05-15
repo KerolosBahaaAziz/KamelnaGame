@@ -18,7 +18,7 @@ struct CardView: View {
                 .font(.title)
         }
         .frame(width: 60, height: 90)
-        .background(Color.white)
+        .background(SecondaryBackgroundGradient.backgroundGradient)
         .cornerRadius(8)
         .shadow(radius: 4)
     }

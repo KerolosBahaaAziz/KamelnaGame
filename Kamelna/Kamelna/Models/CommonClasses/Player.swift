@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 //
 //  Player.swift
@@ -5,6 +6,8 @@
 //
 //  Created by Andrew Emad Morris on 13/05/2025.
 //
+=======
+>>>>>>> b8604f363d58bcfe6e26ef9502c7497e3591e90c
 //
 //  Player.swift
 //  Kamelna
@@ -12,7 +15,10 @@
 //  Created by Yasser Yasser on 28/04/2025.
 //
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b8604f363d58bcfe6e26ef9502c7497e3591e90c
 import Foundation
 
 struct Player: Identifiable, Codable {

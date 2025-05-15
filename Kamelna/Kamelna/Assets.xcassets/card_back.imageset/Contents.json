@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "hand-drawn-playing-card-back-design-illustration_23-2151080559.jpg_copy-removebg-preview.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
