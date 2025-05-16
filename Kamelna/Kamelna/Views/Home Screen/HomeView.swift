@@ -143,7 +143,7 @@ struct HomeView: View {
                     }) {
                         SessionButton(title: "إنشاء جلسة", icon: "plus.circle.fill")
                     }
-                    
+
                     Button(action: {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         print("لعبة ودية tapped")
@@ -195,7 +195,9 @@ struct HomeView: View {
                 .background(SecondaryBackgroundGradient.backgroundGradient)
                 .cornerRadius(20)
                 .shadow(radius: 5)
-                
+                NavigationLink(destination: LoadingScreenView(), isActive: $showGameView) {
+                    EmptyView()
+                }
                 NavigationLink(destination: GameSceneView(roomId: roomID, playerId: Auth.auth().currentUser?.uid ?? ""), isActive: $shouldNavigate) {
                     EmptyView()
                 }

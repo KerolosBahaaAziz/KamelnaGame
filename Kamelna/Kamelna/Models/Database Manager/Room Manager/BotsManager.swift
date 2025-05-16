@@ -69,7 +69,7 @@ class BotsManager{
                     "name": "Bot \(i)",
                     "isBot": true,
                     "hand": [],
-                    "seat": currentCount - 1 + i,
+                    "seat": currentCount,
                     "team":currentCount%2 + 1,
                     "score":0,
                     "playedCard": NSNull()
