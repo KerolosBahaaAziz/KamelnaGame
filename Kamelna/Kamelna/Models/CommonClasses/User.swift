@@ -18,6 +18,21 @@ struct User {
     var hearts = 0
     var rank = "مبتدئ"
     var rankPoints = 0
-   
+    var medal = 0
+    var creationDate : String
 
 }
+enum UserFireStoreAttributes: String {
+    case firstName = "First_name"
+    case lastName = "Last_name"
+    case email = "email"
+    case profilePictureUrl = "ProfilePic"
+    case blackStars = "Black_Stars"
+    case brief = "Brief"
+    case hearts = "Hearts"
+    case rank = "Rank"
+    case rankPoints = "Rank_Points"
+    case medal = "medal"
+    case creationDate = "creationDate"
+}
+

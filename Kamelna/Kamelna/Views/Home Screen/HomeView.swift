@@ -18,9 +18,10 @@ struct HomeView: View {
     let userId = UserDefaults.standard.string(forKey: "userId")
     @State private var showGameView = false
     @State var createdRoomId: String?
-    
+    @State var showProfile = false
+       
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             VStack(spacing: 20) {
                 // Top bar
                 HStack {
@@ -34,16 +35,20 @@ struct HomeView: View {
                     Spacer()
                     LogoView()
                     Spacer()
+                    
                     Button {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        showProfile.toggle()
                     } label: {
                         Image(systemName: "person.2.fill")
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                             .font(.title2)
                     }
+                    NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                        EmptyView()
+                    }
                 }
                 .padding(.horizontal)
-                //                    .padding(.top , 20)
                 
                 // Profile card
                 GeometryReader { geometry in
@@ -87,7 +92,7 @@ struct HomeView: View {
                     .cornerRadius(20)
                     .shadow(radius: 5)
                     .padding(.horizontal)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2) // center
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
                 
                 Spacer()
@@ -108,7 +113,6 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 50)
                 
-                
                 // Session buttons
                 HStack(spacing: 20) {
                     Button(action: {
@@ -123,15 +127,13 @@ struct HomeView: View {
                         print("إنشاء جلسة tapped")
                         
                         guard let userId = userId else {
-                            print(" No user ID found. Please register.")
+                            print("No user ID found. Please register.")
                             return
                         }
                         
                         RoomManager.shared.createRoom(currentUserId: userId, name: "") { roomId in
-                            if roomId != nil{
+                            if let roomId = roomId {
                                 print("You have created a room with ID: \(roomId)")
-                                print("created room id = \(createdRoomId)")
-                                print("room id = \(roomId)")
                                 DispatchQueue.main.async {
                                     createdRoomId = roomId
                                     showGameView = true
@@ -146,18 +148,16 @@ struct HomeView: View {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         print("لعبة ودية tapped")
                         
-                        if let root = UIApplication.shared.windows.first?.rootViewController {
+                        if let root = UIApplication.shared.connectedScenes
+                            .compactMap({ $0 as? UIWindowScene })
+                            .first?.windows.first(where: { $0.isKeyWindow })?.rootViewController {
                             RewardedAdManager.shared.showAd(from: root) {
-                                // ✅ This runs after user watches the full ad
                                 print("User earned reward — proceed to create session")
-                                
-                                // 👉 Example: navigate or call your create session logic
-                                //createSession()
                             }
                         }
                     }) {
                         SessionButton(title: "لعبة ودية", icon: "gamecontroller.fill")
-                    }//.disabled(!RewardedAdManager.shared.isAdReady)
+                    }
                     
                     Button(action: {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
@@ -165,7 +165,7 @@ struct HomeView: View {
                     }) {
                         SessionButton(title: "قائمة الجلسات", icon: "list.bullet")
                     }
-                }                
+                }
                 .padding(.horizontal)
                 .padding(.top)
                 
@@ -183,8 +183,6 @@ struct HomeView: View {
                 .cornerRadius(15)
                 .padding(.top)
                 
-                //                    Spacer()
-                
                 // Tab Bar
                 HStack {
                     TabBarButton(title: "المتجر", icon: "cart.fill")
@@ -197,24 +195,23 @@ struct HomeView: View {
                 .background(SecondaryBackgroundGradient.backgroundGradient)
                 .cornerRadius(20)
                 .shadow(radius: 5)
+                
+                NavigationLink(destination: GameSceneView(roomId: roomID, playerId: Auth.auth().currentUser?.uid ?? ""), isActive: $shouldNavigate) {
+                    EmptyView()
+                }
+                .hidden()
             }
             .background(BackgroundGradient.backgroundGradient)
             .edgesIgnoringSafeArea(.bottom)
-            
             .fullScreenCover(isPresented: $isLoading) {
                 LoadingScreenView()
-            }.onAppear {
+            }
+            .onAppear {
                 RewardedAdManager.shared.loadAd()
             }
-            
-            
-            NavigationLink(destination: EmptyView(), isActive: $shouldNavigate) {
-                //                EmptyView()
-                //                    GameView(roomId: $roomID)
-            }.hidden()
         }
     }
-    
+
     func playBlot() {
         if let userId = UserDefaults.standard.string(forKey: "userId"),
            let email = Auth.auth().currentUser?.email {
@@ -249,7 +246,7 @@ struct HomeView: View {
         }
     }
 }
+
 #Preview {
     HomeView()
 }
-

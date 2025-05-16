@@ -61,10 +61,12 @@ class GoogleAuthHandler {
                             print("❌ Couldn’t parse full name: \(name)")
                             return
                         }
-
+                        let formatter = DateFormatter()
+                        formatter.dateStyle = .medium
+                        let tempDate = formatter.string(from: Date())
                         let user = User(firstName: components[0],
                                         lastName: components[1],
-                                        email: email)
+                                        email: email,creationDate: tempDate)
                         DataBaseManager.shared.addUser(user: user)
                     }
                 }
