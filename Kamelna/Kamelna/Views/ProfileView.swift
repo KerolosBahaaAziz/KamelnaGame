@@ -24,6 +24,8 @@ struct ProfileView: View {
     
     let tabs = ["نبذة", "التصنيف", "الجوائز"]
     
+    @Environment(\.dismiss) var dismiss
+    
     var body: some View {
         VStack(spacing: 20) {
             // Top bar
@@ -50,6 +52,7 @@ struct ProfileView: View {
                 
                 Button("عودة") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                    dismiss()
                 }
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                 .font(.callout.bold())

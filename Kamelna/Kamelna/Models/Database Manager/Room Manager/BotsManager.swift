@@ -58,8 +58,9 @@ class BotsManager{
     
     func addBotsIfNeeded(to players: [String: [String: Any]]) -> [String: [String: Any]] {
         var updatedPlayers = players
-        let currentCount = players.count
+        var currentCount = players.count
         let neededBots = max(0, 4 - currentCount)
+        
         
         for i in 1...neededBots {
             let botId = "bot\(i)"
@@ -68,9 +69,13 @@ class BotsManager{
                     "name": "Bot \(i)",
                     "isBot": true,
                     "hand": [],
+                    "seat": currentCount - 1 + i,
+                    "team":currentCount%2 + 1,
+                    "score":0,
                     "playedCard": NSNull()
                 ]
             }
+            currentCount = currentCount+1
         }
         
         return updatedPlayers

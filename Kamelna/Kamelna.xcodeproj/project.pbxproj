@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC664C62DD3AFF800268F19 /* Lottie */; };
+		8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC6655D2DD3C64900268F19 /* GoogleMobileAds */; };
 		8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD616002DC4C78B00FCB72B /* FirebaseStorage */; };
 		F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB42DC22B7400B78B0F /* FirebaseAuth */; };
 		F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB62DC22B7400B78B0F /* FirebaseCore */; };
@@ -83,6 +84,7 @@
 				8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */,
 				F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */,
 				F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */,
+				8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */,
 				8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */,
 				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
 				F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */,
@@ -158,6 +160,7 @@
 				F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */,
 				8FD616002DC4C78B00FCB72B /* FirebaseStorage */,
 				8FC664C62DD3AFF800268F19 /* Lottie */,
+				8FC6655D2DD3C64900268F19 /* GoogleMobileAds */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -245,6 +248,7 @@
 				F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F58D598F2DBF8687007AE133 /* Products */;
@@ -625,6 +629,14 @@
 				minimumVersion = 4.5.1;
 			};
 		};
+		8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
 		F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -648,6 +660,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		8FC6655D2DD3C64900268F19 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 		8FD616002DC4C78B00FCB72B /* FirebaseStorage */ = {
 			isa = XCSwiftPackageProductDependency;

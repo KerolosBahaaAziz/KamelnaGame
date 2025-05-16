@@ -13,174 +13,206 @@ struct HomeView: View {
     @State var roomID : String = ""
     @State var shouldNavigate : Bool = false
     @State var isLoading = false
+    @State var showDownloadView = false
+    @State private var showProfileDetail = false
+    let userId = UserDefaults.standard.string(forKey: "userId")
+    @State private var showGameView = false
+    @State var createdRoomId: String?
     
     var body: some View {
         NavigationStack{
-                VStack(spacing: 20) {
-                    // Top bar
-                    HStack {
-                        Button {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                        } label: {
-                            Image(systemName: "bell.fill")
-                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                                .font(.title2)
-                        }
-                        Spacer()
-                        LogoView()
-                        Spacer()
-                        Button {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                        } label: {
-                            Image(systemName: "person.2.fill")
-                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                                .font(.title2)
-                        }
-                    }
-                    .padding(.horizontal)
-//                    .padding(.top , 20)
-                    
-                    // Profile card
-                    GeometryReader { geometry in
-                        VStack(spacing: 20) {
-                            Text("Kerolos Bahaa")
-                                .font(.title3.bold())
-                            Text("غير مشترك")
-                                .font(.caption)
-                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(ButtonBackGroundColor.backgroundGradient)
-                                .clipShape(Capsule())
-                            
-                            Image(systemName: "person.crop.circle")
-                                .resizable()
-                                .frame(width: 80, height: 80)
-                                .foregroundColor(.gray)
-                            
-                            HStack(spacing: 20) {
-                                Spacer()
-                                StatView(icon: "heart.fill", value: "0", color: .red)
-                                Spacer()
-                                StatView(icon: "medal.fill", value: "0", color: .orange)
-                                Spacer()
-                                StatView(icon: "star.fill", value: "0", color: .yellow)
-                                Spacer()
-                                StatView(icon: "creditcard.fill", value: "0", color: .green)
-                                Spacer()
-                            }
-                        }
-                        .padding()
-                        .frame(width: geometry.size.width * 0.9)
-                        .background(SecondaryBackgroundGradient.backgroundGradient)
-                        .cornerRadius(20)
-                        .shadow(radius: 5)
-                        .padding(.horizontal)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2) // center
-                    }
-                    
-                    Spacer()
-                    
-                    // Play button
-                    Button(action: {
+            VStack(spacing: 20) {
+                // Top bar
+                HStack {
+                    Button {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                        playBlot()
-                    }) {
-                        Text("العب بلوت")
-                            .font(.title3.bold())
+                    } label: {
+                        Image(systemName: "bell.fill")
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                            .padding()
-                            .frame(maxWidth: .infinity)
+                            .font(.title2)
+                    }
+                    Spacer()
+                    LogoView()
+                    Spacer()
+                    Button {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                    } label: {
+                        Image(systemName: "person.2.fill")
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                            .font(.title2)
+                    }
+                }
+                .padding(.horizontal)
+                //                    .padding(.top , 20)
+                
+                // Profile card
+                GeometryReader { geometry in
+                    VStack(spacing: 20) {
+                        Text("Kerolos Bahaa")
+                            .font(.title3.bold())
+                        Text("غير مشترك")
+                            .font(.caption)
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
                             .background(ButtonBackGroundColor.backgroundGradient)
-                            .cornerRadius(30)
-                            .shadow(color: Color(red: 92/255, green: 59/255, blue: 30/255).opacity(0.4), radius: 10, x: 0, y: 5)
-                    }
-                    .padding(.horizontal, 50)
-
-                    
-                    // Session buttons
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                            print("جلسة صوتية tapped")
-                        }) {
-                            SessionButton(title: "جلسة صوتية", icon: "mic.fill")
-                        }
+                            .clipShape(Capsule())
                         
-                        Button(action: {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                            print("إنشاء جلسة tapped")
-                        }) {
-                            SessionButton(title: "إنشاء جلسة", icon: "plus.circle.fill")
-                        }
-                        
-                        Button(action: {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                            print("لعبة ودية tapped")
-                        }) {
-                            SessionButton(title: "لعبة ودية", icon: "gamecontroller.fill")
-                        }
-                        
-                        Button(action: {
-                            SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                            print("قائمة الجلسات tapped")
-                        }) {
-                            SessionButton(title: "قائمة الجلسات", icon: "list.bullet")
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    // Kamelna cup
-                    VStack {
-                        Text("كأس كملنا")
-                            .font(.headline)
-                        Image(systemName: "crown.fill")
+                        Image(systemName: "person.crop.circle")
                             .resizable()
-                            .frame(width: 90, height: 60)
-                            .foregroundColor(.yellow)
+                            .frame(width: 90, height: 90)
+                            .foregroundColor(.gray)
+                            .onTapGesture {
+                                showProfileDetail = true
+                            }
+                            .fullScreenCover(isPresented: $showProfileDetail) {
+                                ProfileView()
+                            }
+                        
+                        HStack(spacing: 20) {
+                            Spacer()
+                            StatView(icon: "heart.fill", value: "0", color: .red)
+                            Spacer()
+                            StatView(icon: "medal.fill", value: "0", color: .orange)
+                            Spacer()
+                            StatView(icon: "star.fill", value: "0", color: .yellow)
+                            Spacer()
+                            StatView(icon: "creditcard.fill", value: "0", color: .green)
+                            Spacer()
+                        }
                     }
                     .padding()
-                    .background(SecondaryBackgroundGradient.backgroundGradient)
-                    .cornerRadius(15)
-                    .padding(.top)
-                    
-//                    Spacer()
-                    
-                    // Tab Bar
-                    HStack {
-                        TabBarButton(title: "المتجر", icon: "cart.fill")
-                        TabBarButton(title: "المجتمع", icon: "person.3.fill")
-                        TabBarButton(title: "الرئيسية", icon: "house.fill", isActive: true)
-                        TabBarButton(title: "الدوريات", icon: "trophy.fill")
-                        TabBarButton(title: "دردشة", icon: "bubble.left.and.bubble.right.fill", badge: 5)
-                    }
-                    .padding()
+                    .frame(width: geometry.size.width * 0.9)
                     .background(SecondaryBackgroundGradient.backgroundGradient)
                     .cornerRadius(20)
                     .shadow(radius: 5)
+                    .padding(.horizontal)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2) // center
                 }
-                .background(BackgroundGradient.backgroundGradient)
-                .edgesIgnoringSafeArea(.bottom)
                 
-                if isLoading {
-                    Color.black.opacity(0.5)
-                        .ignoresSafeArea()
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(2)
-                        Text("جاري تحميل الغرفة...")
-                            .foregroundColor(.white)
-                            .font(.headline)
+                Spacer()
+                
+                // Play button
+                Button(action: {
+                    SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                    playBlot()
+                }) {
+                    Text("العب بلوت")
+                        .font(.title3.bold())
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .cornerRadius(30)
+                        .shadow(color: Color(red: 92/255, green: 59/255, blue: 30/255).opacity(0.4), radius: 10, x: 0, y: 5)
+                }
+                .padding(.horizontal, 50)
+                
+                
+                // Session buttons
+                HStack(spacing: 20) {
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        print("جلسة صوتية tapped")
+                    }) {
+                        SessionButton(title: "جلسة صوتية", icon: "mic.fill")
                     }
-                }
+                    
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        print("إنشاء جلسة tapped")
+                        
+                        guard let userId = userId else {
+                            print(" No user ID found. Please register.")
+                            return
+                        }
+                        
+                        RoomManager.shared.createRoom(currentUserId: userId, name: "") { roomId in
+                            if roomId != nil{
+                                print("You have created a room with ID: \(roomId)")
+                                print("created room id = \(createdRoomId)")
+                                print("room id = \(roomId)")
+                                DispatchQueue.main.async {
+                                    createdRoomId = roomId
+                                    showGameView = true
+                                }
+                            }
+                        }
+                    }) {
+                        SessionButton(title: "إنشاء جلسة", icon: "plus.circle.fill")
+                    }
+                    
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        print("لعبة ودية tapped")
+                        
+                        if let root = UIApplication.shared.windows.first?.rootViewController {
+                            RewardedAdManager.shared.showAd(from: root) {
+                                // ✅ This runs after user watches the full ad
+                                print("User earned reward — proceed to create session")
+                                
+                                // 👉 Example: navigate or call your create session logic
+                                //createSession()
+                            }
+                        }
+                    }) {
+                        SessionButton(title: "لعبة ودية", icon: "gamecontroller.fill")
+                    }//.disabled(!RewardedAdManager.shared.isAdReady)
+                    
+                    Button(action: {
+                        SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        print("قائمة الجلسات tapped")
+                    }) {
+                        SessionButton(title: "قائمة الجلسات", icon: "list.bullet")
+                    }
+                }                
+                .padding(.horizontal)
+                .padding(.top)
                 
-            NavigationLink(destination: EmptyView(), isActive: $shouldNavigate) {
-                    //                EmptyView()
-//                    GameView(roomId: $roomID)
-                }.hidden()
+                // Kamelna cup
+                VStack {
+                    Text("كأس كملنا")
+                        .font(.headline)
+                    Image(systemName: "crown.fill")
+                        .resizable()
+                        .frame(width: 90, height: 60)
+                        .foregroundColor(.yellow)
+                }
+                .padding()
+                .background(SecondaryBackgroundGradient.backgroundGradient)
+                .cornerRadius(15)
+                .padding(.top)
+                
+                //                    Spacer()
+                
+                // Tab Bar
+                HStack {
+                    TabBarButton(title: "المتجر", icon: "cart.fill")
+                    TabBarButton(title: "المجتمع", icon: "person.3.fill")
+                    TabBarButton(title: "الرئيسية", icon: "house.fill", isActive: true)
+                    TabBarButton(title: "الدوريات", icon: "trophy.fill")
+                    TabBarButton(title: "دردشة", icon: "bubble.left.and.bubble.right.fill", badge: 5)
+                }
+                .padding()
+                .background(SecondaryBackgroundGradient.backgroundGradient)
+                .cornerRadius(20)
+                .shadow(radius: 5)
             }
+            .background(BackgroundGradient.backgroundGradient)
+            .edgesIgnoringSafeArea(.bottom)
+            
+            .fullScreenCover(isPresented: $isLoading) {
+                LoadingScreenView()
+            }.onAppear {
+                RewardedAdManager.shared.loadAd()
+            }
+            
+            
+            NavigationLink(destination: EmptyView(), isActive: $shouldNavigate) {
+                //                EmptyView()
+                //                    GameView(roomId: $roomID)
+            }.hidden()
+        }
     }
     
     func playBlot() {

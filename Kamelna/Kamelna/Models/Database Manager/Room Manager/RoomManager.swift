@@ -344,7 +344,7 @@ class RoomManager : ObservableObject{
                 "score": 0,
                 "isReady": false
             ]
-            
+                        
             // تحديث بيانات الغرفة في Firestore
             roomRef.updateData(["players": playersData, "playerOrder": FieldValue.arrayUnion([currentUserId])]) { error in
                 if let error = error {

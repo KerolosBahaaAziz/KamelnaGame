@@ -11,7 +11,9 @@ import FirebaseFirestore
 class GameViewModel: ObservableObject {
     @Published var roomData: [String: Any]?
     @Published var isMyTurn = false
+    @Published var players: [Player] = []
     
+    var listener: ListenerRegistration?
      var roomId: String
      var playerId: String
     var hand: [Card] {
@@ -21,9 +23,10 @@ class GameViewModel: ObservableObject {
               let handStrings = playerData["hand"] as? [String] else {
             return []
         }
-
+        
         return handStrings.compactMap { Card.from(string: $0) }
     }
+    
     var centerCard: Card? {
         guard let trick = roomData?["currentTrick"] as? [String: Any],
               let cards = trick["cards"] as? [[String: String]],
@@ -47,17 +50,37 @@ class GameViewModel: ObservableObject {
         self.roomId = roomId
         self.playerId = playerId
         listenToRoomUpdates()
+        //fetchPlayers(roomId: roomId)
     }
+
 
     func listenToRoomUpdates() {
         RoomManager.shared.listenToRoom(roomId: roomId) { [weak self] data in
-            DispatchQueue.main.async {
-                self?.roomData = data
-                self?.checkTurn()
+            if data != nil {
+                DispatchQueue.main.async {
+                    self?.roomData = data
+                    self?.checkTurn()
+                }
+            }else {
+                print("no room wwith this id so can not to fetch room data")
             }
         }
     }
 
+    func fetchPlayers(roomId: String) {
+        Firestore.firestore().collection("rooms").document(roomId)
+            .addSnapshotListener { snapshot, error in
+                guard let data = snapshot?.data() else { return }
+
+                if let playersMap = data["players"] as? [String: [String: Any]] {
+                    let players: [Player] = playersMap.compactMap { (key, value) in
+                        try? Firestore.Decoder().decode(Player.self, from: value)
+                    }
+                    self.players = players
+                }
+            }
+    }
+    
     func playCard(card: Card) {
         RoomManager.shared.playCard(roomId: roomId, playerId: playerId, card: card.toString()) { success in
             if !success {
@@ -87,8 +110,6 @@ class GameViewModel: ObservableObject {
         return handStrings.compactMap { Card.from(string: $0) }
     }
     
-    private var listener: ListenerRegistration?
-
     func startListeningForRoomUpdates() {
         let db = Firestore.firestore()
         listener = db.collection("rooms").document(roomId).addSnapshotListener { [weak self] snapshot, error in
