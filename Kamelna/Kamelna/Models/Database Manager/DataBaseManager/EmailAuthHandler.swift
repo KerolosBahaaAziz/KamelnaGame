@@ -16,7 +16,7 @@ class EmailAuthHandler{
     
     func registerWithEmail(email: String, password: String, firstName: String, lastName: String, completion: @escaping (Bool, String) -> Void) {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        formatter.dateStyle = .short
         let tempDate = formatter.string(from: Date())
         let userAdded = User(firstName: firstName,
                              lastName: lastName,
