@@ -11,6 +11,10 @@ struct CreateRoomView: View {
     @State private var sessionName: String = ""
     @State private var gameSpeed: Int = 0 // 0: Infinite, 1: 30s, 2: 10s, 3: 5s
     @State private var minLevel: String = "مبتدئ"
+    @State private var showWaitOtherPlayers = false
+    
+    let userId = UserDefaults.standard.string(forKey: "userId")
+    private var createdRoomId = UserDefaults.standard.string(forKey: "roomId")
 
     var body: some View {
         ZStack {
@@ -103,11 +107,27 @@ struct CreateRoomView: View {
                 Button(action: {
                     // Create session
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                    
+                    RoomManager.shared.createRoom(currentUserId: userId ?? "", name: "kerolos") { roomId in
+                        if let roomId = roomId {
+                            print("You have created a room with ID: \(roomId)")
+                            if UserDefaults.standard.string(forKey: "roomId") != roomId{
+                                UserDefaults.standard.set(roomId, forKey: "roomId")
+                            }else{
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    showWaitOtherPlayers = true
+                                }
+                            }
+                        }
+                    }
+
                 }) {
                     HStack {
                         Image(systemName: "diamond.fill")
                         Text("إنشاء الجلسة")
-                    }
+                    }.fullScreenCover(isPresented: $showWaitOtherPlayers, content: {
+                        WaitOtherPlayersView(viewModel: GameViewModel(roomId: UserDefaults.standard.string(forKey: "roomId")!, playerId: userId!))
+                    })
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     .padding()
                     .frame(maxWidth: .infinity)

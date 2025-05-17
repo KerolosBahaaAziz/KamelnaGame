@@ -50,7 +50,9 @@ class GameViewModel: ObservableObject {
         self.roomId = roomId
         self.playerId = playerId
         listenToRoomUpdates()
-        //fetchPlayers(roomId: roomId)
+        DispatchQueue.main.asyncAfter(deadline: .now()+1){
+            self.fetchPlayers(roomId: roomId)
+        }
     }
 
 
@@ -71,11 +73,20 @@ class GameViewModel: ObservableObject {
         Firestore.firestore().collection("rooms").document(roomId)
             .addSnapshotListener { snapshot, error in
                 guard let data = snapshot?.data() else { return }
+                print("room id : \(roomId)")
 
                 if let playersMap = data["players"] as? [String: [String: Any]] {
                     let players: [Player] = playersMap.compactMap { (key, value) in
-                        try? Firestore.Decoder().decode(Player.self, from: value)
+                        do {
+                            var player = try Firestore.Decoder().decode(Player.self, from: value)
+                            player.id = key // <-- 🔥 This is critical!
+                            return player
+                        } catch {
+                            print("Decoding error for player \(key): \(error)")
+                            return nil
+                        }
                     }
+                    print("number of players = \(players.count)")
                     self.players = players
                 }
             }

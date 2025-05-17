@@ -70,7 +70,7 @@ struct TableView: View {
     }
 
     private func playerName(for id: String) -> String {
-        if currentPlayer.id == id { return currentPlayer.name }
+        if currentPlayer.id == id { return currentPlayer.name ?? "no name" }
         return otherPlayers.first(where: { $0.id == id })?.name ?? "?"
     }
 }

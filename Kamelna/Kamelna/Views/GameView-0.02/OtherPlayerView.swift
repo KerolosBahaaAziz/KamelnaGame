@@ -13,7 +13,7 @@ struct OtherPlayerView: View {
 
     var body: some View {
         VStack {
-            Text(player.name)
+            Text(player.name ?? "ezz")
                 .font(.headline)
 
             HStack(spacing: -12) {

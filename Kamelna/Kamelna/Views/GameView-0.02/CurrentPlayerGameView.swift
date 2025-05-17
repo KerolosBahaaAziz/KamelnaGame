@@ -12,7 +12,7 @@ struct CurrentPlayerGameView: View {
     let playCard: (Card) -> Void
     
     var cards: [Card] {
-        player.hand.compactMap { Card.from(string: $0) }
+        player.hand.compactMap { Card.from(string: $0) } ?? []
     }
     
     var body: some View {

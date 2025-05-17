@@ -221,6 +221,7 @@ class RoomManager : ObservableObject{
                 completion(nil)
             } else {
                 print("Room created with ID: \(roomId)")
+                UserDefaults.standard.set(roomId, forKey: "roomId")
                 completion(roomId)
                 RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
 

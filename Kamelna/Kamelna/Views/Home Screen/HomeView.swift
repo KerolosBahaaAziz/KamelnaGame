@@ -130,16 +130,7 @@ struct HomeView: View {
                             print("No user ID found. Please register.")
                             return
                         }
-                        
-                        RoomManager.shared.createRoom(currentUserId: userId, name: "") { roomId in
-                            if let roomId = roomId {
-                                print("You have created a room with ID: \(roomId)")
-                                DispatchQueue.main.async {
-                                    createdRoomId = roomId
-                                    showGameView = true
-                                }
-                            }
-                        }
+                        showGameView = true
                     }) {
                         SessionButton(title: "إنشاء جلسة", icon: "plus.circle.fill")
                     }
@@ -195,7 +186,7 @@ struct HomeView: View {
                 .background(SecondaryBackgroundGradient.backgroundGradient)
                 .cornerRadius(20)
                 .shadow(radius: 5)
-                NavigationLink(destination: LoadingScreenView(), isActive: $showGameView) {
+                NavigationLink(destination: CreateRoomView(), isActive: $showGameView) {
                     EmptyView()
                 }
                 NavigationLink(destination: GameSceneView(roomId: roomID, playerId: Auth.auth().currentUser?.uid ?? ""), isActive: $shouldNavigate) {
