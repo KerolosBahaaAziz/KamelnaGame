@@ -3,16 +3,20 @@ import Foundation
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
-
-class UserManager{
+import Cloudinary
+final class UserManager{
     let currentUserEmail = Auth.auth().currentUser?.email
     let creationDate = Auth.auth().currentUser?.metadata.creationDate
     private let db = Firestore.firestore()
     private let collection = "User_Data"
+    private let cloudinary: CLDCloudinary
     static let shared = UserManager()
     static var docId : String?
     
-    private init(){}
+    private init(){
+         let config = CLDConfiguration(cloudName: "dohnxmenv", secure: true)
+         cloudinary = CLDCloudinary(configuration: config)
+    }
     func parseUserDocument(_ document: DocumentSnapshot) -> User? {
         let data = document.data() ?? [:]
         
@@ -97,6 +101,7 @@ class UserManager{
     }
     // remeber to add type check in the function in the future
     func updateUserData(user: User, enumField: UserFireStoreAttributes,value: Any){
+      
         userDocumentRef(for: user).updateData([enumField.rawValue : value]){ error in
             if let error = error {
                 print("Error updating user: \(error.localizedDescription)")
@@ -105,6 +110,26 @@ class UserManager{
             }
         }
     }
+    func generateUrlImage(_ image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
+           guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+               completion(.failure(NSError(domain: "Invalid Image", code: 0, userInfo: nil)))
+               return
+           }
+
+           let params = CLDUploadRequestParams().setUploadPreset("Kamelena")
+
+           cloudinary.createUploader().upload(data: imageData, uploadPreset: "Kamelena", params: params)
+               .response { result, error in
+                   if let error = error {
+                       completion(.failure(error))
+                   } else if let url = result?.secureUrl {
+                       completion(.success(url))
+                   } else {
+                       completion(.failure(NSError(domain: "Upload failed", code: 0, userInfo: nil)))
+                   }
+               }
+       }
+    
     
     
     
