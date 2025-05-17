@@ -10,25 +10,32 @@ import SwiftUI
 struct OtherPlayerView: View {
     let player: Player
     let cardCount: Int
+    let seatPosition: PlayerSeatPosition
 
     var body: some View {
-
         VStack(spacing: 6) {
             ZStack {
-                // Arc of cards above the avatar
+                // Arc of cards based on position
                 ForEach(0..<cardCount, id: \.self) { index in
-                    let angle = Double(index - cardCount / 2) * 12
+                    let radius: CGFloat = 60
+                    let (startAngle, endAngle) = angleRange(for: seatPosition)
+                    let angleStep = (endAngle - startAngle) / Double(max(cardCount - 1, 1))
+                    let angle = startAngle + angleStep * Double(index)
+
+                    let radians = Angle(degrees: angle).radians
+                    let x = radius * CGFloat(cos(radians))
+                    let y = radius * CGFloat(sin(radians))
+
                     Image("card_back")
                         .resizable()
                         .frame(width: 40, height: 60)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .rotationEffect(.degrees(angle))
-                        .offset(x: CGFloat(angle) * 1.2, y: -abs(CGFloat(angle)) * 0.6)
+                        .rotationEffect(.degrees(angle + 90))
+                        .offset(x: x, y: y)
                         .shadow(radius: 2)
                 }
-                .offset(y : -10)
-                
-                // Avatar
+
+                // Avatar in center
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
                     .frame(width: 40, height: 40)
@@ -38,14 +45,31 @@ struct OtherPlayerView: View {
             Text(player.name ?? "الاسم غير معروف")
                 .font(.headline)
 
-            Text("فريق: \(player.team) | نقاط: \(player.score)")
+            let playerTeam = player.team ?? 0
+            let playerScore = player.score ?? 0
+
+            Text("فريق: \(playerTeam) | نقاط: \(playerScore)")
                 .font(.caption)
                 .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
-                .lineLimit(1)
+                .lineLimit(2)
         }
-        .padding(.top , 30)
+        .frame(maxWidth: .infinity)
+        .padding()
+    }
+
+    // MARK: - Angle range depending on seat
+    private func angleRange(for position: PlayerSeatPosition) -> (Double, Double) {
+        switch position {
+        case .top:
+            return (-180, 0) // Arc above the avatar
+        case .left:
+            return (0, -90) // Arc to the left
+        case .right:
+            return (180, 270) // Arc to the right
+        }
     }
 }
+
 
 
 
@@ -56,11 +80,11 @@ struct OtherPlayerView: View {
             id: "2",
             name: "أحمد",
             seat: 1,
-            hand: Array(repeating: "K", count: 5), // not used directly
+            hand: Array(repeating: "K", count: 9), // not used directly
             team: 2,
             score: 10,
             isReady: true
         ),
-        cardCount: 5
+        cardCount: 5, seatPosition: .top
     )
 }

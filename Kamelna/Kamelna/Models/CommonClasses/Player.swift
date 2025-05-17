@@ -16,3 +16,7 @@ struct Player: Identifiable, Codable {
     var score: Int?
     var isReady: Bool?
 }
+
+enum PlayerSeatPosition {
+    case top, left, right
+}

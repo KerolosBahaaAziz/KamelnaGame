@@ -12,16 +12,16 @@ struct CurrentPlayerGameView: View {
     let playCard: (Card) -> Void
     
     var cards: [Card] {
-        player.hand.compactMap { Card.from(string: $0) } ?? []
+        player.hand.compactMap { Card.from(string: $0) }
     }
     
     var body: some View {
         VStack {
-            Text("مرحبا، \(player.name)")
-                .font(.title2)
-                .padding(.top)
+            let playerName = player.name ?? "unknown"
+            let playerTeam = player.team ?? 0
+            let playerScore = player.score ?? 0
             
-            Text("فريق: \(player.team) | النقاط: \(player.score)")
+            Text("فريق: \(playerTeam) | النقاط: \(playerScore)")
                 .font(.subheadline)
                 .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
             
@@ -41,10 +41,11 @@ struct CurrentPlayerGameView: View {
                         }
                     }
                 }
-                .padding()
+//                .padding()
             }
+            BottomButtonsView(userName:playerName, status: "جديد")
         }
-        .padding()
+        .padding([.leading, .trailing])
     }
 }
 
