@@ -12,26 +12,41 @@ struct OtherPlayerView: View {
     let cardCount: Int
 
     var body: some View {
-        VStack {
-            Text(player.name ?? "ezz")
-                .font(.headline)
 
-            HStack(spacing: -12) {
-                ForEach(0..<cardCount, id: \.self) { _ in
+        VStack(spacing: 6) {
+            ZStack {
+                // Arc of cards above the avatar
+                ForEach(0..<cardCount, id: \.self) { index in
+                    let angle = Double(index - cardCount / 2) * 12
                     Image("card_back")
                         .resizable()
                         .frame(width: 40, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .rotationEffect(.degrees(angle))
+                        .offset(x: CGFloat(angle) * 1.2, y: -abs(CGFloat(angle)) * 0.6)
                         .shadow(radius: 2)
                 }
+                .offset(y : -10)
+                
+                // Avatar
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .zIndex(1)
             }
+
+            Text(player.name ?? "الاسم غير معروف")
+                .font(.headline)
 
             Text("فريق: \(player.team) | نقاط: \(player.score)")
                 .font(.caption)
                 .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
                 .lineLimit(1)
         }
+        .padding(.top , 30)
     }
 }
+
 
 
 
@@ -41,7 +56,7 @@ struct OtherPlayerView: View {
             id: "2",
             name: "أحمد",
             seat: 1,
-            hand: Array(repeating: "?", count: 5), // not used directly
+            hand: Array(repeating: "K", count: 5), // not used directly
             team: 2,
             score: 10,
             isReady: true

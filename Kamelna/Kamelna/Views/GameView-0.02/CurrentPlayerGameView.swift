@@ -25,7 +25,7 @@ struct CurrentPlayerGameView: View {
                 .font(.subheadline)
                 .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
             
-            Spacer()
+//            Spacer()
             
             Text("يدك")
                 .font(.headline)
