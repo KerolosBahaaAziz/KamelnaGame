@@ -13,31 +13,31 @@ struct TableView: View {
     let playedCards: [String: Card] // player.id : Card
     let playCard: (Card) -> Void
     let currentTurnPlayerId: String
-
+    
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 BackgroundGradient.backgroundGradient.ignoresSafeArea()
-
+                
                 VStack(spacing: 0) {
                     // Top Player
                     playerViewAt(seatOffset: 2)
                         .frame(height: geo.size.height * 0.08)
                         .padding(.top, geo.safeAreaInsets.top) // Respect safe area insets
-
+                    
                     Spacer()
-
+                    
                     HStack {
                         // Left Player
                         playerViewAt(seatOffset: 1)
                             .frame(width: geo.size.width * 0.2)
-
+                        
                         Spacer()
-
+                        
                         // Center Table
                         ZStack {
                             LogoView(width: geo.size.width * 0.25, height: geo.size.width * 0.25)
-
+                            
                             ForEach(playedCards.sorted(by: { $0.key < $1.key }), id: \.key) { playerId, card in
                                 if let seat = seatForPlayerId(playerId) {
                                     let offset = cardOffset(for: seat, in: geo.size)
@@ -50,26 +50,30 @@ struct TableView: View {
                         }
                         .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.3)
                         .offset(y: geo.size.height * 0.05) // 👈 Push cards down
-
+                        
                         Spacer()
-
+                        
                         // Right Player
                         playerViewAt(seatOffset: 3)
                             .frame(width: geo.size.width * 0.2)
                     }
-
+                    
                     Spacer()
-
+                    
                     // Current Player
                     CurrentPlayerGameView(player: currentPlayer, playCard: playCard)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, geo.safeAreaInsets.bottom) // Respect bottom safe area
+                        .background(Color.clear)
                 }
                 .padding(.top, 20)
             }
         }
+        .ignoresSafeArea(.all, edges: .bottom) // Ensure the view extends to the bottom edge
     }
-
+    
     // MARK: - Reusable Components
-
+    
     private func playerViewAt(seatOffset: Int) -> some View {
         Group {
             if let player = playerForRelativeSeat(seatOffset) {
@@ -89,27 +93,27 @@ struct TableView: View {
             }
         }
     }
-
-
+    
+    
     private func playerForRelativeSeat(_ relativeSeat: Int) -> Player? {
         let absoluteSeat = ((currentPlayer.seat ?? 0) + relativeSeat) % 4
         return otherPlayers.first(where: { $0.seat == absoluteSeat })
     }
-
+    
     private func playerName(for id: String) -> String {
         if currentPlayer.id == id { return currentPlayer.name ?? "Me" }
         return otherPlayers.first(where: { $0.id == id })?.name ?? "?"
     }
-
+    
     private func seatForPlayerId(_ playerId: String) -> Int? {
         if playerId == currentPlayer.id { return currentPlayer.seat }
         return otherPlayers.first(where: { $0.id == playerId })?.seat
     }
-
+    
     private func cardOffset(for seat: Int, in size: CGSize) -> CGSize {
         let relativeSeat = (seat - (currentPlayer.seat ?? 0) + 4) % 4
         let offsetValue: CGFloat = size.width * 0.15
-
+        
         switch relativeSeat {
         case 0: return CGSize(width: 0, height: offsetValue)   // Bottom
         case 1: return CGSize(width: -offsetValue, height: 0)  // Left
@@ -118,7 +122,7 @@ struct TableView: View {
         default: return .zero
         }
     }
-
+    
     private func angleForSeat(_ seat: Int) -> Double {
         let relativeSeat = (seat - (currentPlayer.seat ?? 0) + 4) % 4
         switch relativeSeat {

@@ -61,7 +61,7 @@ struct OtherPlayerView: View {
     private func angleRange(for position: PlayerSeatPosition) -> (Double, Double) {
         switch position {
         case .top:
-            return (-180, 0) // Arc above the avatar
+            return (-135, -45) // Arc above the avatar
         case .left:
             return (0, -90) // Arc to the left
         case .right:
