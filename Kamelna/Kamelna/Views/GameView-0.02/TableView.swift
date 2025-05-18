@@ -13,6 +13,7 @@ struct TableView: View {
     let playedCards: [String: Card] // player.id : Card
     let playCard: (Card) -> Void
     let currentTurnPlayerId: String
+    let roomId : String
     
     var body: some View {
         GeometryReader { geo in
@@ -20,9 +21,13 @@ struct TableView: View {
                 BackgroundGradient.backgroundGradient.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
+                    TopButtonsView(usScore: 100, themScore: 100, roomNumber: roomId)
+                        .frame(height: geo.size.height * 0.08)
+                    Spacer()
                     // Top Player
                     playerViewAt(seatOffset: 2)
                         .frame(height: geo.size.height * 0.08)
+                        .offset(y : 35)
                         .padding(.top, geo.safeAreaInsets.top) // Respect safe area insets
                     
                     Spacer()
@@ -49,7 +54,7 @@ struct TableView: View {
                             }
                         }
                         .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.3)
-                        .offset(y: geo.size.height * 0.05) // 👈 Push cards down
+                        .offset(y: geo.size.height * 0.04) // 👈 Push cards down
                         
                         Spacer()
                         
@@ -65,8 +70,9 @@ struct TableView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.bottom, geo.safeAreaInsets.bottom) // Respect bottom safe area
                         .background(Color.clear)
+                        .offset(y : 12)
                 }
-                .padding(.top, 20)
+                .padding(.top)
             }
         }
         .ignoresSafeArea(.all, edges: .bottom) // Ensure the view extends to the bottom edge
@@ -158,6 +164,7 @@ struct TableView: View {
         otherPlayers: otherPlayers,
         playedCards: played,
         playCard: { card in print("Played: \(card.toString())") },
-        currentTurnPlayerId: "2" // 👈 simulate it's Ahmed's turn
+        currentTurnPlayerId: "2",
+        roomId: "57JKL" // 👈 simulate it's Ahmed's turn
     )
 }

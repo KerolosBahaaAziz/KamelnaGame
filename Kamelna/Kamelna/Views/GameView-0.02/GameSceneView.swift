@@ -79,7 +79,8 @@ struct GameSceneView: View {
                             showTurnMessage = true
                         }
                     },
-                    currentTurnPlayerId: "youssab"
+                    currentTurnPlayerId: "youssab",
+                    roomId: viewModel.roomId
                 )
                 
                 if !viewModel.isMyTurn {

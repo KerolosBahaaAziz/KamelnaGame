@@ -12,10 +12,7 @@ struct TopButtonsView: View {
     let themScore: Int
     let roomNumber: String
     var body: some View {
-        ZStack{
-            SecondaryBackgroundGradient
-                .backgroundGradient
-                .ignoresSafeArea()
+        NavigationStack{
             HStack{
                 iconButton(systemName: "ellipsis", label: "المزيد", action: {
                     print("المزيد")
@@ -25,7 +22,7 @@ struct TopButtonsView: View {
                 })
                 // add here a text "لنا" "لهم" and below them the score and below the score the number of the room
                 VStack(spacing: 4) {
-                    HStack(spacing: 20) {
+                    HStack(spacing: 10) {
                         // Us (لنا)
                         VStack {
                             Text("لنا")
@@ -35,7 +32,10 @@ struct TopButtonsView: View {
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.subheadline)
                                 .bold()
-                                .background(.white)
+                                .padding(.horizontal, 4) // Increased horizontal padding
+                                .padding(.vertical, 4)
+                                .background(SelectedButtonBackGroundColor.backgroundGradient)
+                                .cornerRadius(10) // Rounded corners
                         }
                         // Them (لهم)
                         VStack {
@@ -46,7 +46,10 @@ struct TopButtonsView: View {
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.subheadline)
                                 .bold()
-                                .background(.white)
+                                .padding(.horizontal, 4) // Increased horizontal padding
+                                .padding(.vertical, 4)
+                                .background(SelectedButtonBackGroundColor.backgroundGradient)
+                                .cornerRadius(10) // Rounded corners
                         }
                     }
                     Text("غرفة: \(roomNumber)")
@@ -60,10 +63,26 @@ struct TopButtonsView: View {
                 iconButton(systemName: "square.and.arrow.up.fill", label: "المشاركة", action: {
                     print("المشاركة")
                 })
-                iconButton(systemName: "bubble.left.fill", label: "تعابير", action: {
-                    print("تعابير")
-                })
+                NavigationLink(destination: RoomChatView(roomId: roomNumber)) {
+                    VStack {
+                        Image(systemName: "bubble.left.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        Text("تعابير")
+                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                            .font(.caption)
+                    }
+                    .padding()
+                    .background(ButtonBackGroundColor.backgroundGradient)
+                    .cornerRadius(20)
+                }
             }
+            .padding(5)
+            .background(SecondaryBackgroundGradient.backgroundGradient)
+            .cornerRadius(20)
+            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: -3)
         }
     }
     
@@ -87,5 +106,5 @@ struct TopButtonsView: View {
 }
 
 #Preview {
-    TopButtonsView(usScore: 100, themScore: 70, roomNumber: "567J5")
+    TopButtonsView(usScore: 12, themScore: 900, roomNumber: "567J5")
 }
