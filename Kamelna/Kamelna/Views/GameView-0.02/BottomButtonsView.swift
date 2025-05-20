@@ -74,7 +74,7 @@ struct BottomButtonsView: View {
             Image(systemName: systemName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 30, height: 30)
+                .frame(width: 20, height: 20)
                 .padding()
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
         }
@@ -87,7 +87,7 @@ struct BottomButtonsView: View {
         Button(action: action) {
             Text(title)
                 .font(.title3)
-                .frame(minWidth: 80)
+                .frame(minWidth: 110)
                 .padding(.vertical, 10)
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                 .background(ButtonBackGroundColor.backgroundGradient)
