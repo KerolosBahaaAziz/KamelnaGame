@@ -10,7 +10,7 @@
 		8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC664C62DD3AFF800268F19 /* Lottie */; };
 		8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC6655D2DD3C64900268F19 /* GoogleMobileAds */; };
 		8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD616002DC4C78B00FCB72B /* FirebaseStorage */; };
-		B4ADB4DA2DD8C1DB0028D97C /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = B4ADB4D92DD8C1DB0028D97C /* Cloudinary */; };
+		8FFCC2EF2DDCEEFD00C65A9B /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */; };
 		F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB42DC22B7400B78B0F /* FirebaseAuth */; };
 		F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB62DC22B7400B78B0F /* FirebaseCore */; };
 		F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */; };
@@ -88,7 +88,7 @@
 				8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */,
 				8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */,
 				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
-				B4ADB4DA2DD8C1DB0028D97C /* Cloudinary in Frameworks */,
+				8FFCC2EF2DDCEEFD00C65A9B /* Cloudinary in Frameworks */,
 				F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */,
 				F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */,
 				F5D40DE12DC2534400B78B0F /* GoogleSignIn in Frameworks */,
@@ -163,7 +163,7 @@
 				8FD616002DC4C78B00FCB72B /* FirebaseStorage */,
 				8FC664C62DD3AFF800268F19 /* Lottie */,
 				8FC6655D2DD3C64900268F19 /* GoogleMobileAds */,
-				B4ADB4D92DD8C1DB0028D97C /* Cloudinary */,
+				8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -252,7 +252,7 @@
 				F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
-				B4ADB4D82DD8C1DB0028D97C /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
+				8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F58D598F2DBF8687007AE133 /* Products */;
@@ -641,7 +641,7 @@
 				minimumVersion = 12.4.0;
 			};
 		};
-		B4ADB4D82DD8C1DB0028D97C /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+		8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/cloudinary/cloudinary_ios";
 			requirement = {
@@ -683,9 +683,9 @@
 			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
 		};
-		B4ADB4D92DD8C1DB0028D97C /* Cloudinary */ = {
+		8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B4ADB4D82DD8C1DB0028D97C /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			package = 8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
 			productName = Cloudinary;
 		};
 		F5D40CB42DC22B7400B78B0F /* FirebaseAuth */ = {
