@@ -23,7 +23,8 @@ struct GameSceneView: View {
             hand: playerData["hand"] as? [String] ?? [],
             team: playerData["team"] as? Int ?? 0,
             score: playerData["score"] as? Int ?? 0,
-            isReady: playerData["isReady"] as? Bool ?? false
+            isReady: playerData["isReady"] as? Bool ?? false,
+            email: playerData["email"] as? String ?? "Unknown"
         )
     }
     
@@ -43,7 +44,8 @@ struct GameSceneView: View {
                 hand: data["hand"] as? [String] ?? [],
                 team: data["team"] as? Int ?? 0,
                 score: data["score"] as? Int ?? 0,
-                isReady: data["isReady"] as? Bool ?? false
+                isReady: data["isReady"] as? Bool ?? false,
+                email: data["email"] as? String ?? "Unknown"
             )
         }
     }

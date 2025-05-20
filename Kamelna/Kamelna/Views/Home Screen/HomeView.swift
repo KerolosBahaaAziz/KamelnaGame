@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showGameView = false
     @State var createdRoomId: String?
     @State var showProfile = false
+    @State var profileViewModel = ProfileViewModel()
        
     var body: some View {
         NavigationStack {
@@ -216,7 +217,7 @@ struct HomeView: View {
                 firstname = firstName ?? ""
                 print("first name is: \(firstname)")
                 
-                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: firstname) { roomId in
+                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId,currentUserEmail: profileViewModel.user?.email ?? "", playerName: firstname) { roomId in
                     guard let roomId = roomId else {
                         print("Couldn't create a room ID")
                         isLoading = false

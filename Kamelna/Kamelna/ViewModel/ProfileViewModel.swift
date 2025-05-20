@@ -55,5 +55,16 @@ class ProfileViewModel : ObservableObject{
         }
        updateUser(enumField: .rankPoints, value: rankPoints)
     }
+    func updateHearts(email: String,isLike: Int){
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print(email)
+                return}
+            let tempHearts = user.hearts + isLike
+            UserManager.shared.updateUserData(user: user, enumField: .hearts, value: tempHearts)
+            
+        }
+    }
     
 }
+
