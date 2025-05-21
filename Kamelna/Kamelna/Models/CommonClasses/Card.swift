@@ -28,10 +28,29 @@ struct Card : Identifiable, Codable {
              seven = "7",
              eight = "8",
              nine = "9",
+             ten = "10",
              jack = "J" ,
              queen = "Q",
              king = "K",
              ace = "A"
+    }
+}
+
+extension Card {
+    static func from(string: String) -> Card? {
+        let valuePart = String(string.prefix { $0.isNumber || "JQKA".contains($0) })
+        let suitPart = String(string.dropFirst(valuePart.count))
+
+        guard let value = CardValue(rawValue: valuePart),
+              let suit = Suit.allCases.first(where: { $0.rawValue == suitPart }) else {
+            return nil
+        }
+
+        return Card(suit: suit, value: value)
+    }
+
+    func toString() -> String {
+        return value.rawValue + suit.rawValue
     }
 }
 

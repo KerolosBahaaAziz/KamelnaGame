@@ -6,6 +6,21 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC664C62DD3AFF800268F19 /* Lottie */; };
+		8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 8FC6655D2DD3C64900268F19 /* GoogleMobileAds */; };
+		8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD616002DC4C78B00FCB72B /* FirebaseStorage */; };
+		8FFCC2EF2DDCEEFD00C65A9B /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = 8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */; };
+		F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB42DC22B7400B78B0F /* FirebaseAuth */; };
+		F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB62DC22B7400B78B0F /* FirebaseCore */; };
+		F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */; };
+		F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */; };
+		F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */; };
+		F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */; };
+		F5D40DE12DC2534400B78B0F /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40DE02DC2534400B78B0F /* GoogleSignIn */; };
+		F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F58D59A42DBF8689007AE133 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +44,22 @@
 		F58D59AD2DBF8689007AE133 /* KamelnaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KamelnaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F5D40DE52DC253A800B78B0F /* Exceptions for "Kamelna" folder in "Kamelna" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F58D598D2DBF8687007AE133 /* Kamelna */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F58D59902DBF8687007AE133 /* Kamelna */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F5D40DE52DC253A800B78B0F /* Exceptions for "Kamelna" folder in "Kamelna" target */,
+			);
 			path = Kamelna;
 			sourceTree = "<group>";
 		};
@@ -52,6 +80,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5D40CBF2DC22B7400B78B0F /* FirebaseMessaging in Frameworks */,
+				F5D40CB92DC22B7400B78B0F /* FirebaseDatabase in Frameworks */,
+				8FD616012DC4C78B00FCB72B /* FirebaseStorage in Frameworks */,
+				F5D40CBB2DC22B7400B78B0F /* FirebaseFirestore in Frameworks */,
+				F5D40DE32DC2534400B78B0F /* GoogleSignInSwift in Frameworks */,
+				8FC6655E2DD3C64900268F19 /* GoogleMobileAds in Frameworks */,
+				8FC664C72DD3AFF800268F19 /* Lottie in Frameworks */,
+				F5D40CBD2DC22B7400B78B0F /* FirebaseFunctions in Frameworks */,
+				8FFCC2EF2DDCEEFD00C65A9B /* Cloudinary in Frameworks */,
+				F5D40CB72DC22B7400B78B0F /* FirebaseCore in Frameworks */,
+				F5D40CB52DC22B7400B78B0F /* FirebaseAuth in Frameworks */,
+				F5D40DE12DC2534400B78B0F /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +152,18 @@
 			);
 			name = Kamelna;
 			packageProductDependencies = (
+				F5D40CB42DC22B7400B78B0F /* FirebaseAuth */,
+				F5D40CB62DC22B7400B78B0F /* FirebaseCore */,
+				F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */,
+				F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */,
+				F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */,
+				F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */,
+				F5D40DE02DC2534400B78B0F /* GoogleSignIn */,
+				F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */,
+				8FD616002DC4C78B00FCB72B /* FirebaseStorage */,
+				8FC664C62DD3AFF800268F19 /* Lottie */,
+				8FC6655D2DD3C64900268F19 /* GoogleMobileAds */,
+				8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */,
 			);
 			productName = Kamelna;
 			productReference = F58D598E2DBF8687007AE133 /* Kamelna.app */;
@@ -195,6 +247,13 @@
 			);
 			mainGroup = F58D59852DBF8687007AE133;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F58D598F2DBF8687007AE133 /* Products */;
 			projectDirPath = "";
@@ -399,11 +458,14 @@
 				DEVELOPMENT_TEAM = ZA23JTQV5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kamelna/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "نحتاج إلى الوصول إلى صورك لتغيير صورة الملف الشخصي";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -428,11 +490,14 @@
 				DEVELOPMENT_TEAM = ZA23JTQV5N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kamelna/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "نحتاج إلى الوصول إلى صورك لتغيير صورة الملف الشخصي";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -558,6 +623,112 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.1;
+			};
+		};
+		8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+		8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cloudinary/cloudinary_ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+		F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.12.0;
+			};
+		};
+		F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8FC664C62DD3AFF800268F19 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FC664C52DD3AFF800268F19 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+		8FC6655D2DD3C64900268F19 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FC6655C2DD3C64900268F19 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		8FD616002DC4C78B00FCB72B /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		8FFCC2EE2DDCEEFD00C65A9B /* Cloudinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FFCC2ED2DDCEEFD00C65A9B /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			productName = Cloudinary;
+		};
+		F5D40CB42DC22B7400B78B0F /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		F5D40CB62DC22B7400B78B0F /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		F5D40CB82DC22B7400B78B0F /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		F5D40CBA2DC22B7400B78B0F /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		F5D40CBC2DC22B7400B78B0F /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		F5D40CBE2DC22B7400B78B0F /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40CB32DC22B7400B78B0F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		F5D40DE02DC2534400B78B0F /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		F5D40DE22DC2534400B78B0F /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D40DDF2DC2534400B78B0F /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F58D59862DBF8687007AE133 /* Project object */;
 }

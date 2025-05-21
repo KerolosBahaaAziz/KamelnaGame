@@ -7,79 +7,96 @@
 
 import SwiftUI
 import CoreData
+import FirebaseAuth
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
+    //    let roomManager = RoomManager()
+    @State var roomID : String = ""
+    @State var shouldNavigate = false
+    
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
+//                GameView()
+//                NavigationStack{
+//                    VStack{
+//                        GoogleSignInView()
+//                        Button("Create Room", action: {
+//                            if let user = Auth.auth().currentUser {
+//                                let userId = user.uid
+//                                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
+//                                    roomId in
+//                                    guard let roomId = roomId else {
+//                                        print("Couldn't create a room ID")
+//                                        return
+//                                    }
+//                                    roomID = roomId
+//                                    shouldNavigate = true
+//                                    print("Successfully Created a room \(roomId)")
+//                                })
+//                                print("User ID: \(userId)")
+//                            } else {
+//                                // Handle the case where no user is signed in
+//                                print("No user is logged in. Redirect to login screen.")
+//                            }
+//                        })
+//                        NavigationLink(destination: RoomChatView(roomId: $roomID), isActive: $shouldNavigate) {
+//                            EmptyView()
+//                        }
+//                        .hidden()
+//                    }
+//                }
+//            }
+        //                GameView()
+        //                NavigationStack{
+        //                    VStack{
+        //                        GoogleSignInView()
+        //                        Button("Create Room", action: {
+        //                            if let user = Auth.auth().currentUser {
+        //                                let userId = user.uid
+        //                                RoomManager.shared.autoJoinOrCreateRoom(currentUserId: userId, playerName: "testing2", completion: {
+        //                                    roomId in
+        //                                    guard let roomId = roomId else {
+        //                                        print("Couldn't create a room ID")
+        //                                        return
+        //                                    }
+        //                                    roomID = roomId
+        //                                    shouldNavigate = true
+        //                                    print("Successfully Created a room \(roomId)")
+        //                                })
+        //                                print("User ID: \(userId)")
+        //                            } else {
+        //                                // Handle the case where no user is signed in
+        //                                print("No user is logged in. Redirect to login screen.")
+        //                            }
+        //                        })
+        //                        NavigationLink(destination: RoomChatView(roomId: $roomID), isActive: $shouldNavigate) {
+        //                            EmptyView()
+        //                        }
+        //                        .hidden()
+        //                    }
+        //                }
+        //            }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+        RegisterView()
+        //        CreateRoomView()
+        //        RegisterView()
+//                CreateRoomView()
 
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
+        //        LoadingScreenView()
+//        GeneralChatView()
+//        RoomChatView(roomId: $roomID)
+//        LoadingScreenView()
+       // HomeView()
+       // JoinRoomByCode()
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
+//      ProfileView()
+        //HomeView()
+//        JoinRoomByCode()
 
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
+      //ProfileView()
+        
     }
 }
-
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
