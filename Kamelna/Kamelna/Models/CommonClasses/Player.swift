@@ -17,3 +17,7 @@ struct Player: Identifiable, Codable {
     var isReady: Bool?
     var email : String?
 }
+
+enum PlayerSeatPosition {
+    case top, left, right
+}

@@ -88,6 +88,11 @@ struct ContentView: View {
 //        LoadingScreenView()
        // HomeView()
        // JoinRoomByCode()
+
+//      ProfileView()
+        //HomeView()
+//        JoinRoomByCode()
+
       //ProfileView()
         
     }

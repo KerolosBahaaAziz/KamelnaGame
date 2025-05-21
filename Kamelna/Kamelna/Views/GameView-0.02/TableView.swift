@@ -12,105 +12,146 @@ struct TableView: View {
     let otherPlayers: [Player] // Should contain 3 other players
     let playedCards: [String: Card] // player.id : Card
     let playCard: (Card) -> Void
-
+    let currentTurnPlayerId: String
+    let roomId : String
+    
     var body: some View {
-        ZStack {
-            BackgroundGradient.backgroundGradient.ignoresSafeArea()
-            VStack {
-                // Top Player (opposite the current player)
-                if let topPlayer = playerForRelativeSeat(2) {
-                    OtherPlayerView(player: topPlayer, cardCount: topPlayer.hand.count)
-                        .frame(width: 90)
-                }
-
-                GeometryReader { geometry in
+        GeometryReader { geo in
+            ZStack {
+                BackgroundGradient.backgroundGradient.ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    TopButtonsView(usScore: 100, themScore: 100, roomNumber: roomId)
+                        .frame(height: geo.size.height * 0.08)
+                    Spacer()
+                    // Top Player
+                    playerViewAt(seatOffset: 2)
+                        .frame(height: geo.size.height * 0.08)
+                        .offset(y : 35)
+                        .padding(.top, geo.safeAreaInsets.top) // Respect safe area insets
+                    
+                    Spacer()
+                    
                     HStack {
                         // Left Player
-                        if let leftPlayer = playerForRelativeSeat(1) {
-                            VStack {
-                                Spacer()
-                                OtherPlayerView(player: leftPlayer, cardCount: leftPlayer.hand.count)
-//                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 90)
-                                    .offset(x: 30 ,y: -60)
-                                Spacer()
-                            }
-                        }
-
+                        playerViewAt(seatOffset: 1)
+                            .frame(width: geo.size.width * 0.2)
+                        
                         Spacer()
-
-                        // Center Played Cards and Logo
-                        ZStack(alignment: .center) {
-                            // Static Logo
-                            LogoView(width: 120, height: 120)
+                        
+                        // Center Table
+                        ZStack {
+                            LogoView(width: geo.size.width * 0.25, height: geo.size.width * 0.25)
                             
-                            // Played Cards & Player Names (positioned above the logo)
-                            VStack(spacing: 4) {
-                                HStack(spacing: 8) {
-                                    ForEach(playedCards.sorted(by: { $0.key < $1.key }), id: \.key) { playerId, card in
-                                        VStack(spacing: 2) {
-                                            CardView(card: card)
-                                            Text(playerName(for: playerId))
-                                                .font(.caption2)
-                                        }
-                                    }
+                            ForEach(playedCards.sorted(by: { $0.key < $1.key }), id: \.key) { playerId, card in
+                                if let seat = seatForPlayerId(playerId) {
+                                    let offset = cardOffset(for: seat, in: geo.size)
+                                    let angle = angleForSeat(seat)
+                                    CardView(card: card)
+                                        .rotationEffect(.degrees(angle))
+                                        .offset(offset)
                                 }
-                                Text("الأوراق الملعوبة")
-                                    .font(.caption)
                             }
-                            .offset(y :100) // Push it above the logo
                         }
-                        .frame(width: geometry.size.width * 0.4, height: 150)
-                        .offset(y :50)
-
-
+                        .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.3)
+                        .offset(y: geo.size.height * 0.04) // 👈 Push cards down
+                        
                         Spacer()
-
+                        
                         // Right Player
-                        if let rightPlayer = playerForRelativeSeat(3) {
-                            VStack {
-                                Spacer()
-                                OtherPlayerView(player: rightPlayer, cardCount: rightPlayer.hand.count)
-//                                    .rotationEffect(.degrees(90))
-                                    .frame(width: 90)
-                                    .offset(x: -30 ,y: -60)
-                                Spacer()
-                            }
-                        }
+                        playerViewAt(seatOffset: 3)
+                            .frame(width: geo.size.width * 0.2)
                     }
+                    
+                    Spacer()
+                    
+                    // Current Player
+                    CurrentPlayerGameView(player: currentPlayer, playCard: playCard)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, geo.safeAreaInsets.bottom) // Respect bottom safe area
+                        .background(Color.clear)
+                        .offset(y : 12)
                 }
-                .frame(height: 350) // Adjust height as needed
-                
-                // Bottom Player (Current Player)
-                CurrentPlayerGameView(player: currentPlayer, playCard: playCard)
+                .padding(.top)
             }
-            .padding()
+        }
+        .ignoresSafeArea(.all, edges: .bottom) // Ensure the view extends to the bottom edge
+    }
+    
+    // MARK: - Reusable Components
+    
+    private func playerViewAt(seatOffset: Int) -> some View {
+        Group {
+            if let player = playerForRelativeSeat(seatOffset) {
+                let relativeSeat = (player.seat! - (currentPlayer.seat ?? 0) + 4) % 4
+                let position: PlayerSeatPosition = {
+                    switch relativeSeat {
+                    case 1: return .left
+                    case 2: return .top
+                    case 3: return .right
+                    default: return .top
+                    }
+                }()
+                OtherPlayerView(player: player, cardCount: player.hand.count, seatPosition: position)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Spacer().frame(maxWidth: .infinity)
+            }
         }
     }
-
-    // Calculate the player for a relative seat position based on currentPlayer's seat
+    
+    
     private func playerForRelativeSeat(_ relativeSeat: Int) -> Player? {
-        // Normalize the seat numbers relative to the current player's seat
         let absoluteSeat = ((currentPlayer.seat ?? 0) + relativeSeat) % 4
         return otherPlayers.first(where: { $0.seat == absoluteSeat })
     }
-
+    
     private func playerName(for id: String) -> String {
-        if currentPlayer.id == id { return currentPlayer.name ?? "no name" }
+        if currentPlayer.id == id { return currentPlayer.name ?? "Me" }
         return otherPlayers.first(where: { $0.id == id })?.name ?? "?"
+    }
+    
+    private func seatForPlayerId(_ playerId: String) -> Int? {
+        if playerId == currentPlayer.id { return currentPlayer.seat }
+        return otherPlayers.first(where: { $0.id == playerId })?.seat
+    }
+    
+    private func cardOffset(for seat: Int, in size: CGSize) -> CGSize {
+        let relativeSeat = (seat - (currentPlayer.seat ?? 0) + 4) % 4
+        let offsetValue: CGFloat = size.width * 0.15
+        
+        switch relativeSeat {
+        case 0: return CGSize(width: 0, height: offsetValue)   // Bottom
+        case 1: return CGSize(width: -offsetValue, height: 0)  // Left
+        case 2: return CGSize(width: 0, height: -offsetValue)  // Top
+        case 3: return CGSize(width: offsetValue, height: 0)   // Right
+        default: return .zero
+        }
+    }
+    
+    private func angleForSeat(_ seat: Int) -> Double {
+        let relativeSeat = (seat - (currentPlayer.seat ?? 0) + 4) % 4
+        switch relativeSeat {
+        case 0: return 0    // Bottom
+        case 1: return -90  // Left
+        case 2: return 180  // Top
+        case 3: return 90   // Right
+        default: return 0
+        }
     }
 }
 
+
 #Preview {
     let currentPlayer = Player(
-        id: "1", name: "ياسر", seat: 1, // Changed to test a different seat
+        id: "1", name: "ياسر", seat: 0, // Changed to test a different seat
         hand: ["A♠️", "10♥️", "J♦️", "3♣️", "Q♠️"],
         team: 1, score: 30, isReady: true
     )
     let otherPlayers = [
-        Player(id: "2", name: "أحمد", seat: 2, hand: ["K♠️", "Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 2, score: 10, isReady: true),
-        Player(id: "3", name: "ليلى", seat: 3, hand: ["A♦️", "7♣️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 2, score: 20, isReady: true),
-        Player(id: "4", name: "كريم", seat: 0, hand: ["J♠️", "9♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 1, score: 15, isReady: true)
+        Player(id: "2", name: "أحمد", seat: 1, hand: ["K♠️", "Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 2, score: 10, isReady: true),
+        Player(id: "3", name: "ليلى", seat: 2, hand: ["A♦️", "7♣️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 2, score: 20, isReady: true),
+        Player(id: "4", name: "كريم", seat: 3, hand: ["J♠️", "9♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️","Q♥️"], team: 1, score: 15, isReady: true)
     ]
     let played: [String: Card] = [
         "2": Card(suit: .clubs, value: .ten),
@@ -122,6 +163,8 @@ struct TableView: View {
         currentPlayer: currentPlayer,
         otherPlayers: otherPlayers,
         playedCards: played,
-        playCard: { card in print("Played: \(card.toString())") }
+        playCard: { card in print("Played: \(card.toString())") },
+        currentTurnPlayerId: "2",
+        roomId: "57JKL" // 👈 simulate it's Ahmed's turn
     )
 }

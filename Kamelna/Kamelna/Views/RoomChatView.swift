@@ -19,7 +19,7 @@ struct Message: Identifiable {
 
 
 struct RoomChatView: View {
-    @Binding var roomId: String
+    var roomId: String
     @StateObject private var roomManager = RoomManager.shared
     @State private var newMessage: String = ""
     @State private var userId: String = Auth.auth().currentUser?.uid ?? ""
@@ -131,6 +131,6 @@ struct RoomChatView: View {
 
 
 #Preview {
-    @Previewable @State var roomId: String = ""
-    RoomChatView(roomId: $roomId)
+    @Previewable var roomId: String = ""
+    RoomChatView(roomId: roomId)
 }
