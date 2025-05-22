@@ -13,7 +13,7 @@ struct ProfileHeaderView: View {
                 // Edit Button - Could be for profile editing
                 Button("تعديل") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                    profileViewModel.updateRank(earnedPoint: 5000)
+                   // profileViewModel.updateRank(earnedPoint: 1000)
                 }
                 .padding(5)
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
