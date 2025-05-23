@@ -11,7 +11,7 @@ struct OtherPlayerView: View {
     let player: Player
     let cardCount: Int
     let seatPosition: PlayerSeatPosition
-
+    @ObservedObject var profileViewModel : ProfileViewModel
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
@@ -47,6 +47,11 @@ struct OtherPlayerView: View {
 
             let playerTeam = player.team ?? 0
             let playerScore = player.score ?? 0
+            Button {
+                profileViewModel.updateFriendList(email: player.)
+            } label: {
+                
+            }
 
             Text("فريق: \(playerTeam) | نقاط: \(playerScore)")
                 .font(.caption)

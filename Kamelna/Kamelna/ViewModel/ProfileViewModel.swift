@@ -49,7 +49,13 @@ class ProfileViewModel : ObservableObject{
            updateUser(enumField: .rank, value: newRank)
            updateUser(enumField: .rankPoints, value: rankPoints)
     }
-    
+    func updateFriendList(email : String){
+        guard let user = user else{return}
+        var friendList = user.friendList
+        friendList.append(email)
+        updateUser(enumField: .friendList, value: friendList)
+        
+    }
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {
         let rankCategory = RankCategory()

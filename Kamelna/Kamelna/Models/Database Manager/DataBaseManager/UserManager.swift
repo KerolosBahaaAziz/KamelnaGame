@@ -35,6 +35,7 @@ final class UserManager{
         let rankPoints = data["Rank_Points"] as? Int ?? 0
         let medal = data["medal"] as? Int ?? 0
         let creationDate = data["creationDate"] as? String ?? ""
+        let friendList =  data["FriendList"] as? [String] ?? [String]()
         return User(
             firstName: firstName,
             lastName: lastName,
@@ -44,7 +45,11 @@ final class UserManager{
             brief: brief,
             hearts: hearts,
             rank: rank,
-            rankPoints: rankPoints,medal: medal,creationDate: creationDate)
+            rankPoints: rankPoints,
+            medal: medal,
+            creationDate: creationDate,
+            friendList: friendList
+        )
     }
     
     func fetchUserByEmail(email: String, completion: @escaping (User?) -> Void) {
@@ -83,7 +88,8 @@ final class UserManager{
             "Rank": user.rank,
             "Rank_Points": user.rankPoints ,
             "medal":user.medal,
-            "creationDate":user.creationDate]
+            "creationDate":user.creationDate,
+            "FriendList":user.friendList]
         
         db.collection(collection).addDocument(data: userData) { error in
             if let error = error {

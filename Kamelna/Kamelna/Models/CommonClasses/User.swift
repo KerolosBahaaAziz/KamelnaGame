@@ -20,6 +20,7 @@ struct User {
     var rankPoints = 0
     var medal = 0
     var creationDate : String
+    var friendList = [String]()
 
 }
 enum UserFireStoreAttributes: String {
@@ -34,6 +35,7 @@ enum UserFireStoreAttributes: String {
     case rankPoints = "Rank_Points"
     case medal = "medal"
     case creationDate = "creationDate"
+    case friendList = "FriendList"
 }
 
 struct RankCategory {
