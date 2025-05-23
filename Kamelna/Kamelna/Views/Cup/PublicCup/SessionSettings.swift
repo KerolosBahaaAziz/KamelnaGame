@@ -17,7 +17,7 @@ struct SessionSettings: View {
 
 
     @State private var showTimePicker: Bool = false
-    private let matchTypeOptions = ["Single", "Double", "Round Robin"]
+    private let matchTypeOptions = ["قهوه واحده", "الافضل من 3 قهوات", "قهوه واحده النهائي:الافضل من 3 قهوات"]
     private let teamNumber = ["8 فريق/16 عضو", "16 فريق/32 عضو", "32 فريق/64 عضو"]
     private let cupTypeOptions = ["فوري", "مجدول"]
     private let minutesOptions = Array(15...59)
@@ -71,18 +71,15 @@ struct SessionSettings: View {
                     Image("time")
                         .resizable()
                         .frame(width: 25 ,height: 25)
-                        .padding(.trailing)
                 }else {
                     Image("schedule")
                         .resizable()
                         .frame(width: 25,height: 25)
-                        .padding(.trailing)
                 }
                 Text(scheduleDescription)
                     .font(.subheadline)
-                    .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
+                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     .environment(\.layoutDirection, .rightToLeft)
-                    .padding(.horizontal)
             }
             
             // Conditional time picker for scheduled cup
@@ -124,7 +121,7 @@ struct SessionSettings: View {
             
             // Match Type and Number of Teams Pickers
             HStack(alignment: .center) {
-                VStack(alignment: .trailing) {
+                VStack(alignment: .leading) {
                     HStack{
                         Image("card")
                             .resizable()
@@ -133,7 +130,7 @@ struct SessionSettings: View {
                             .font(.subheadline)
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     }
-                    Picker("نوع المباراة", selection: $matchType) {
+                    Picker("", selection: $matchType) {
                         ForEach(matchTypeOptions, id: \.self) { type in
                             Text(type)
                                 .tag(type)
@@ -155,7 +152,7 @@ struct SessionSettings: View {
                             .font(.subheadline)
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                     }
-                    Picker("عدد الفرق", selection: $numberOfTeams) {
+                    Picker("", selection: $numberOfTeams) {
                         ForEach(teamNumber, id: \.self) { team in
                             Text(team).tag(team)
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
@@ -163,7 +160,6 @@ struct SessionSettings: View {
                     }
                     .pickerStyle(.menu)
                     .accentColor(.black)
-
                 }
             }
         }

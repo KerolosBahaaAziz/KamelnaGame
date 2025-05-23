@@ -21,7 +21,7 @@ struct CreatePublicCup: View {
     @State private var scheduledSeconds: Int = 0
 
     @State private var numberOfTeams: String = "8 فريق/16 عضو"
-    @State private var matchType: String = "Single"
+    @State private var matchType: String = "قهوه واحده"
     @State private var gameType: String = "Trivia"
     @State private var innerGameTimerSeconds: String = "30"
     @State private var minLevelRequired: String = "1"
