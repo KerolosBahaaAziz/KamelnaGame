@@ -37,3 +37,12 @@ enum UserFireStoreAttributes: String {
     case creationDate = "creationDate"
 }
 
+struct RankCategory {
+    let categories: [String: Int] = [
+        "مبتدئ": 0,
+        "جيد": 1000,
+        "لعيب": 3000,
+        "خبره": 8000,
+        "نادر": 16000
+    ]
+}
