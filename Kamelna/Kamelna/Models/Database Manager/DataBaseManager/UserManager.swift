@@ -4,6 +4,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import Cloudinary
+
 final class UserManager{
     let currentUserEmail = Auth.auth().currentUser?.email
     let creationDate = Auth.auth().currentUser?.metadata.creationDate

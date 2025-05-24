@@ -12,6 +12,7 @@ class RoomManager : ObservableObject{
     static let shared = RoomManager()
     @Published var listener: ListenerRegistration?
     @Published var messages: [Message] = []
+    private var playerId = UserDefaults.standard.string(forKey: "userId")
     
     private init() {}
   
@@ -190,9 +191,14 @@ class RoomManager : ObservableObject{
             "createdAt": FieldValue.serverTimestamp(),
             "status": RoomStatus.waiting.rawValue, // ممكن تبقى: waiting / playing / ended
             "gameType": "baloot",
+            "roundType": "",
             "trumpSuit": NSNull(), // لسه متحددش
             "turnPlayerId": currentUserId, // لسه متبدأش اللعبة
             "roundNumber": 1, // يبدأ من الجولة 1
+            "roundSelection": [
+                "currentSelector": playerId ?? "", // current player whose turn to choose roundType
+                "startTime": Timestamp() // when their 10s started
+            ],
             "teamScores": [
                 "team1": 0, // فريق 1 يبدأ من صفر
                 "team2": 0  // فريق 2 يبدأ من صفر
@@ -260,46 +266,157 @@ class RoomManager : ObservableObject{
     func distributeCardsToPlayers(roomId: String, players: [String: [String: Any]], completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-        
-        // تأكد إن عدد اللاعبين ٤ فقط
+
         guard players.count == 4 else {
             print("Error: Number of players must be exactly 4 to distribute cards.")
             completion(false)
             return
         }
-        
+
         let allCards = [
             "7♠️", "8♠️", "9♠️", "10♠️", "J♠️", "Q♠️", "K♠️", "A♠️",
             "7♥️", "8♥️", "9♥️", "10♥️", "J♥️", "Q♥️", "K♥️", "A♥️",
             "7♣️", "8♣️", "9♣️", "10♣️", "J♣️", "Q♣️", "K♣️", "A♣️",
             "7♦️", "8♦️", "9♦️", "10♦️", "J♦️", "Q♦️", "K♦️", "A♦️"
         ]
-        
+
         var shuffledCards = allCards.shuffled()
-        var updatedPlayers = players
-        
-        for (playerId, var playerData) in updatedPlayers {
-            let hand = Array(shuffledCards.prefix(8))
-            shuffledCards.removeFirst(8)
-            playerData["hand"] = hand
-            playerData["playedCard"] = NSNull()
-            updatedPlayers[playerId] = playerData
-        }
-        
         var updates: [String: Any] = [:]
-        for (playerId, playerData) in updatedPlayers {
-            updates["players.\(playerId)"] = playerData
+
+        // Phase 1: 5 cards each
+        for (playerId, playerData) in players {
+            let firstFive = Array(shuffledCards.prefix(5))
+            shuffledCards.removeFirst(5)
+
+            var updatedPlayer = playerData
+            updatedPlayer["hand"] = firstFive
+            updatedPlayer["playedCard"] = NSNull()
+
+            updates["players.\(playerId)"] = updatedPlayer
         }
+
+        var ground: String = ""
+        // Add 1 card to currentTrick.cards
+        if let groundCard = shuffledCards.first {
+            ground = shuffledCards.first ?? ""
+            shuffledCards.removeFirst()
+            updates["currentTrick.cards"] = [["card": groundCard, "playerId": NSNull()]]
+        }
+
+        let playerIds = Array(players.keys)
+        let firstPlayerId = playerIds.first ?? ""
+        updates["roundSelection"] = [
+            "currentSelector": firstPlayerId,
+            "startTime": FieldValue.serverTimestamp()
+        ]
+        
+        // Save first update
         roomRef.updateData(updates) { error in
             if let error = error {
-                print("Error distributing cards: \(error)")
+                print("Error during Phase 1 card distribution: \(error)")
                 completion(false)
-            } else {
-                print("Cards distributed successfully")
+                return
+            }
+
+            print("Phase 1 complete. Waiting for roundType or timeout...")
+
+            // Phase 2: Wait for roundType or timeout
+            self.waitForRoundTypeOrTimeout(roomRef: roomRef, remainingCards: shuffledCards, playerIds: Array(players.keys), groundCard:ground ) {
                 completion(true)
             }
         }
     }
+
+    private func waitForRoundTypeOrTimeout(roomRef: DocumentReference, remainingCards: [String], playerIds: [String], groundCard: String, completion: @escaping () -> Void) {
+        var listener: ListenerRegistration?
+        var didTrigger = false
+
+        func finish() {
+            guard !didTrigger else { return }
+            didTrigger = true
+            listener?.remove()
+            completion()
+        }
+
+        func listenForRoundTypeChange() {
+            listener = roomRef.addSnapshotListener { snapshot, error in
+                if let error = error {
+                    print("Listener error: \(error)")
+                    return
+                }
+
+                guard let data = snapshot?.data(),
+                      let roundType = data["roundType"] as? String,
+                      !roundType.isEmpty else {
+                    return
+                }
+
+                print("roundType set to \(roundType) — distributing remaining cards.")
+                self.distributeRemainingCards(roomRef: roomRef, remainingCards: remainingCards, groundCard: groundCard, playerIds: playerIds, completion: finish)
+            }
+        }
+
+        func startSelectorCycle(index: Int) {
+            guard index < playerIds.count else {
+                print("All players skipped — proceeding to distribute remaining cards.")
+                self.distributeRemainingCards(roomRef: roomRef, remainingCards: remainingCards, groundCard: groundCard, playerIds: playerIds, completion: finish)
+                return
+            }
+
+            let currentPlayer = playerIds[index]
+            print("Now selecting: \(currentPlayer)")
+
+            roomRef.updateData([
+                "roundSelection.currentSelector": currentPlayer,
+                "roundSelection.startTime": FieldValue.serverTimestamp()
+            ]) { error in
+                if let error = error {
+                    print("Error updating roundSelection: \(error)")
+                    return
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    guard !didTrigger else { return }
+                    print("Player \(currentPlayer) skipped. Moving to next.")
+                    startSelectorCycle(index: index + 1)
+                }
+            }
+        }
+
+        listenForRoundTypeChange()
+        startSelectorCycle(index: 0)
+    }
+
+
+    private func distributeRemainingCards(roomRef: DocumentReference, remainingCards: [String], groundCard: String, playerIds: [String], completion: @escaping () -> Void) {
+        var updates: [String: Any] = [:]
+        var cards = remainingCards
+        cards.append(groundCard) // Include the trick card
+
+        for playerId in playerIds {
+            guard cards.count >= 3 else {
+                print("Error: Not enough cards to distribute to player \(playerId)")
+                break
+            }
+
+            let additionalCards = Array(cards.prefix(3))
+            cards.removeFirst(3)
+            updates["players.\(playerId).hand"] = FieldValue.arrayUnion(additionalCards)
+        }
+
+        // Clear the trick
+        updates["currentTrick.cards"] = []
+
+        roomRef.updateData(updates) { error in
+            if let error = error {
+                print("Error during Phase 2 card distribution: \(error)")
+            } else {
+                print("Phase 2 complete. All cards distributed.")
+            }
+            completion()
+        }
+    }
+
     
     func joinRoom(roomId: String, currentUserId: String, playerName: String, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()

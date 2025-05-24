@@ -6,13 +6,21 @@
 //
 
 import SwiftUI
-
-import SwiftUI
+import FirebaseCore
+import FirebaseFirestore
 
 struct BottomButtonsView: View {
     let userName: String
     let status: String
 
+    @State private var currentSelector: String? = nil
+    @State private var roundTypeChosen = false
+    @State private var timeLeft: Int = 10
+    @State private var timer: Timer? = nil
+
+    let roomId = UserDefaults.standard.string(forKey: "roomId")
+    let userId = UserDefaults.standard.string(forKey: "userId")
+    
     var body: some View {
         VStack(spacing: 10) {
             // User info and icons
@@ -52,8 +60,15 @@ struct BottomButtonsView: View {
 
             // Action buttons row
             HStack {
-                actionButton(title: "بس", action: { print("بس clicked") })
+                let isMyTurn = currentSelector == userId && !roundTypeChosen
+                actionButton(title: "بس", action: {
+                    print("بس clicked")
+                    chooseRoundType("بس")
+                })
+                .disabled(!isMyTurn)
+                
                 Spacer()
+                
                 actionButton(title: "حكم", action: { print("حكم clicked") })
                 Spacer()
                 actionButton(title: "صن", action: { print("صن clicked") })
@@ -65,6 +80,81 @@ struct BottomButtonsView: View {
             .offset(y :-20)
         }
 //        .padding(.horizontal)
+        .onAppear {
+            startPollingForRoundSelection()
+        }
+    }
+
+    func startPollingForRoundSelection() {
+        if roomId == nil {
+            print("no room id available")
+            return
+        }
+        
+        let roomRef = Firestore.firestore().collection("rooms").document(roomId ?? "")
+
+        roomRef.addSnapshotListener { snapshot, error in
+            guard let data = snapshot?.data(),
+                  let selection = data["roundSelection"] as? [String: Any],
+                  let selector = selection["currentSelector"] as? String,
+                  let startTimestamp = selection["startTime"] as? Timestamp else {
+                return
+            }
+
+            self.currentSelector = selector
+
+            let elapsed = Int(Date().timeIntervalSince1970 - startTimestamp.dateValue().timeIntervalSince1970)
+            self.timeLeft = max(0, 10 - elapsed)
+
+            if self.timeLeft == 0 && !roundTypeChosen {
+                advanceToNextSelector() // logic below
+            }
+        }
+    }
+
+    func chooseRoundType(_ type: String) {
+        guard let roomId = roomId, !roundTypeChosen else { return }
+
+        roundTypeChosen = true
+
+        let db = Firestore.firestore()
+        db.collection("rooms").document(roomId).updateData([
+            "roundType": type
+        ]) { error in
+            if let error = error {
+                print("Error setting roundType: \(error)")
+            } else {
+                print("Round type set to \(type)")
+            }
+        }
+    }
+
+    func advanceToNextSelector() {
+        if roomId == nil {
+            print("no room id available")
+            return
+        }
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId ?? "")
+
+        roomRef.getDocument { snapshot, _ in
+            guard let data = snapshot?.data(),
+                  let order = data["playerOrder"] as? [String],
+                  let current = data["roundSelection"] as? [String: Any],
+                  let currentSelector = current["currentSelector"] as? String,
+                  let currentIndex = order.firstIndex(of: currentSelector),
+                  currentIndex < 3 else {
+                print("No next player")
+                return
+            }
+
+            let nextSelector = order[currentIndex + 1]
+
+            roomRef.updateData([
+                "roundSelection.currentSelector": nextSelector,
+                "roundSelection.startTime": FieldValue.serverTimestamp()
+            ])
+        }
     }
 
     // MARK: - Reusable Button Views
