@@ -9,7 +9,7 @@ import SwiftUI
 
 struct JoinRoomByCode: View {
     @State private var enteredText: String = ""
-
+    @ObservedObject var profileViewModel = ProfileViewModel()
     var body: some View {
         VStack(spacing: 20) {
             Text("Enter Something:")
@@ -20,7 +20,7 @@ struct JoinRoomByCode: View {
                 .padding(.horizontal)
 
             Button(action: {
-                RoomManager.shared.joinRoom(roomId: enteredText, currentUserId: UserDefaults.standard.string(forKey: "userId") ?? "mom", playerName: "soad") { success in
+                RoomManager.shared.joinRoom(roomId: enteredText, currentUserId: UserDefaults.standard.string(forKey: "userId") ?? "mom", currentUserEmail: profileViewModel.user?.email ?? "", playerName: "soad") { success in
                     if success{
                         print("joined to the room")
                     }else{

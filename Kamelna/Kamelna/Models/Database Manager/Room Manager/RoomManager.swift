@@ -180,7 +180,7 @@ class RoomManager : ObservableObject{
     }
 
   
-    func createRoom(currentUserId: String, name: String, completion: @escaping (String?) -> Void) {
+    func createRoom(currentUserId: String, name: String ,currentUserEmail : String , completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomId = generateRoomCode()
         
@@ -210,7 +210,8 @@ class RoomManager : ObservableObject{
                     "hand": [], // هتتحط بعد التوزيع
                     "team": 1,
                     "score": 0,
-                    "isReady": false
+                    "isReady": false,
+                    "email" : currentUserEmail
                 ]
             ],
             "currentTrick": [
@@ -418,7 +419,7 @@ class RoomManager : ObservableObject{
     }
 
     
-    func joinRoom(roomId: String, currentUserId: String, playerName: String, completion: @escaping (Bool) -> Void) {
+    func joinRoom(roomId: String, currentUserId: String,currentUserEmail : String ,playerName: String, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
         
@@ -460,7 +461,8 @@ class RoomManager : ObservableObject{
                 "hand": [], // سيتم توزيع الكروت لاحقًا
                 "team": playersData.count % 2 + 1, // تحديد الفريق: فريق 1 أو فريق 2
                 "score": 0,
-                "isReady": false
+                "isReady": false,
+                "email":currentUserEmail
             ]
                         
             // تحديث بيانات الغرفة في Firestore
@@ -476,7 +478,7 @@ class RoomManager : ObservableObject{
         }
     }
     
-    func joinRoom(roomId: String, currentUserId: String, playerName: String, teamChoice: Int, completion: @escaping (Bool) -> Void) {
+    func joinRoom(roomId: String, currentUserId: String, playerName: String,currentUserEmail : String , teamChoice: Int, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
         
@@ -526,7 +528,8 @@ class RoomManager : ObservableObject{
                 "hand": [], // سيتم توزيع الكروت لاحقًا
                 "team": teamChoice, // تحديد الفريق حسب اختيار اللاعب
                 "score": 0,
-                "isReady": false
+                "isReady": false,
+                "email" : currentUserEmail
             ]
             
             // تحديث بيانات الغرفة في Firestore
@@ -678,7 +681,7 @@ class RoomManager : ObservableObject{
         return nextPlayer?.key ?? currentTurnPlayerId
     }
     
-    func autoJoinOrCreateRoom(currentUserId: String, playerName: String, completion: @escaping (String?) -> Void) {
+    func autoJoinOrCreateRoom(currentUserId: String,currentUserEmail : String ,playerName: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomsRef = db.collection("rooms")
         
@@ -713,14 +716,14 @@ class RoomManager : ObservableObject{
             // If a joinable room is found, attempt to join it
             if let room = joinableRoom {
                 let roomId = room.documentID
-                self.joinRoom(roomId: roomId, currentUserId: currentUserId, playerName: playerName) { success in
+                self.joinRoom(roomId: roomId, currentUserId: currentUserId, currentUserEmail: currentUserEmail, playerName: playerName) { success in
                     if success {
                         print("Joined existing room: \(roomId)")
                         completion(roomId)
                     } else {
                         print("Could not join room, creating a new one.")
                         // If join failed, create a new room
-                        self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                        self.createRoom(currentUserId: currentUserId,name: playerName, currentUserEmail: currentUserEmail) { newRoomId in
                             completion(newRoomId)
                         }
                     }
@@ -728,7 +731,7 @@ class RoomManager : ObservableObject{
             } else {
                 // No room found, create a new one
                 print("No available room found. Creating a new room.")
-                self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                self.createRoom(currentUserId: currentUserId, name: playerName, currentUserEmail: currentUserEmail) { newRoomId in
                     completion(newRoomId)
                 }
             }
