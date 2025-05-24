@@ -20,6 +20,7 @@ struct User {
     var rankPoints = 0
     var medal = 0
     var creationDate : String
+    var docId : String?
 
 }
 enum UserFireStoreAttributes: String {

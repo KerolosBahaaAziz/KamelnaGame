@@ -49,6 +49,16 @@ class ProfileViewModel : ObservableObject{
            updateUser(enumField: .rank, value: newRank)
            updateUser(enumField: .rankPoints, value: rankPoints)
     }
+    func updateHearts(email: String,isLike: Int){
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print(email)
+                return}
+            let tempHearts = user.hearts + isLike
+            UserManager.shared.updateUserData(user: user, enumField: .hearts, value: tempHearts)
+            
+        }
+    }
     
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {
@@ -83,3 +93,4 @@ class ProfileViewModel : ObservableObject{
 
         
 }
+

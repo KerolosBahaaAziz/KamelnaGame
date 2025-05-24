@@ -17,7 +17,7 @@ struct ProfileView: View {
     @State private var selectedRankingCardTab : String = "daily"
     @State private var selectedRankingArranging : String = "arranging"
     @State private var awardsSelectedTab = "الجوائز"
-    @StateObject var profileViewModel = ProfileViewModel()
+    @ObservedObject var profileViewModel = ProfileViewModel()
     let awardsTabs = ["الجوائز", "الإنجازات", "الألقاب"]
     
     

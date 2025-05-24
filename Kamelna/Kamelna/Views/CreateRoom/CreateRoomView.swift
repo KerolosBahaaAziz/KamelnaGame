@@ -15,6 +15,7 @@ struct CreateRoomView: View {
     
     let userId = UserDefaults.standard.string(forKey: "userId")
     private var createdRoomId = UserDefaults.standard.string(forKey: "roomId")
+    @ObservedObject var profileViewModel = ProfileViewModel()
 
     var body: some View {
         ZStack {
@@ -108,7 +109,7 @@ struct CreateRoomView: View {
                     // Create session
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                     
-                    RoomManager.shared.createRoom(currentUserId: userId ?? "", name: "kerolos") { roomId in
+                    RoomManager.shared.createRoom(currentUserId: userId ?? "", name: "kerolos", currentUserEmail: profileViewModel.user?.email ?? "") { roomId in
                         if let roomId = roomId {
                             print("You have created a room with ID: \(roomId)")
                             if UserDefaults.standard.string(forKey: "roomId") != roomId{
