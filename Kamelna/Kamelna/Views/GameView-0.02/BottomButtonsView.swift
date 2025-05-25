@@ -69,9 +69,17 @@ struct BottomButtonsView: View {
                 
                 Spacer()
                 
-                actionButton(title: "حكم", action: { print("حكم clicked") })
+                actionButton(title: "حكم", action: {
+                    print("حكم clicked")
+                    chooseRoundType("حكم")
+                }).disabled(!isMyTurn)
+                
                 Spacer()
-                actionButton(title: "صن", action: { print("صن clicked") })
+                
+                actionButton(title: "صن", action: {
+                    print("صن clicked")
+                    chooseRoundType("صن")
+                }).disabled(!isMyTurn)
             }
             .padding()
             .background(SecondaryBackgroundGradient.backgroundGradient)
@@ -107,7 +115,7 @@ struct BottomButtonsView: View {
             self.timeLeft = max(0, 10 - elapsed)
 
             if self.timeLeft == 0 && !roundTypeChosen {
-                advanceToNextSelector() // logic below
+                advanceToNextSelector()
             }
         }
     }
@@ -118,16 +126,51 @@ struct BottomButtonsView: View {
         roundTypeChosen = true
 
         let db = Firestore.firestore()
-        db.collection("rooms").document(roomId).updateData([
-            "roundType": type
-        ]) { error in
-            if let error = error {
-                print("Error setting roundType: \(error)")
-            } else {
-                print("Round type set to \(type)")
+        let roomRef = db.collection("rooms").document(roomId)
+
+        // Default to empty trumpSuit
+        var updates: [String: Any] = [
+            "roundType": type,
+        ]
+
+        if type == "حكم" {
+            roomRef.getDocument { snapshot, error in
+                guard let data = snapshot?.data(),
+                      let currentTrick = data["currentTrick"] as? [String: Any],
+                      let cards = currentTrick["cards"] as? [[String: Any]],
+                      let firstCard = cards.first?["card"] as? String else {
+                    print("Error: Could not extract card to determine trump suit")
+                    return
+                }
+
+                if let suit = Suit.allCases.first(where: { firstCard.contains($0.rawValue) }) {
+                    updates["trumpSuit"] = suit.rawValue
+                } else {
+                    updates["trumpSuit"] = "" // fallback in case suit isn't found
+                }
+
+                roomRef.updateData(updates) { error in
+                    if let error = error {
+                        print("Error setting roundType with trumpSuit: \(error)")
+                    } else {
+                        print("Round type '\(type)' set with trump suit \(updates["trumpSuit"] ?? "")")
+                    }
+                }
+            }
+        } else {
+            // "صن" or other: no trump
+            updates["trumpSuit"] = ""
+
+            roomRef.updateData(updates) { error in
+                if let error = error {
+                    print("Error setting roundType: \(error)")
+                } else {
+                    print("Round type '\(type)' set with no trump suit")
+                }
             }
         }
     }
+
 
     func advanceToNextSelector() {
         if roomId == nil {
