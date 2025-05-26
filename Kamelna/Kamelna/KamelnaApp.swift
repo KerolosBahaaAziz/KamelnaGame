@@ -11,7 +11,7 @@ import GoogleMobileAds
 @main
 struct KamelnaApp: App {
     let persistenceController = PersistenceController.shared
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegat
 
     init() {
         MobileAds.shared.start(completionHandler: nil)

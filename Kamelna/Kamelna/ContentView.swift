@@ -77,21 +77,8 @@ struct ContentView: View {
         //                }
         //            }
 
-        //RegisterView()
-        //        CreateRoomView()
-        //        RegisterView()
-//                CreateRoomView()
-
-        //        LoadingScreenView()
-//        GeneralChatView()
-//        RoomChatView(roomId: $roomID)
-//        LoadingScreenView()
-       // HomeView()
-       // JoinRoomByCode()
-//      ProfileView()
         HomeView()
-//        JoinRoomByCode()
-      //ProfileView()
+
         
     }
 }

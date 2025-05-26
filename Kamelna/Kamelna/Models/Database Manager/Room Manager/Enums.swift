@@ -12,7 +12,7 @@ enum RoomStatus: String {
     case waiting, playing, ended
 }
 
-enum Suit: String, CaseIterable {
+enum Suit: String, CaseIterable, Codable {
     case spades = "♠️"
     case hearts = "♥️"
     case clubs = "♣️"

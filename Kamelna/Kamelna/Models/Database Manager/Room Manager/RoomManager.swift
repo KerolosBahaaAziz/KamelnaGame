@@ -12,6 +12,7 @@ class RoomManager : ObservableObject{
     static let shared = RoomManager()
     @Published var listener: ListenerRegistration?
     @Published var messages: [Message] = []
+    private var playerId = UserDefaults.standard.string(forKey: "userId")
     
     private init() {}
   
@@ -148,7 +149,7 @@ class RoomManager : ObservableObject{
                   let currentInTrick = data["currentTrick"] as? [String: Any],
                   let cardsArray = currentInTrick["cards"] as? [[String: String]] ,
                   let index = players.firstIndex(of: currentTurn) else {
-                      print("did not enter in advance turn function")
+                print("did not enter in advance turn function")
                 return
             }
             
@@ -160,12 +161,27 @@ class RoomManager : ObservableObject{
                         cardsInTrick[pid] = c
                     }
                 }
-
+                if let trumpSuitRaw = data["trumpSuit"] as? String,
+                   let trumpSuit = Suit(rawValue: trumpSuitRaw),
+                   !trumpSuitRaw.isEmpty {
+                    // Valid trumpSuit was found
+                    print("Trump suit is: \(trumpSuit)")
+                    self.rotatePlayersOrder(roomId: roomId){
+                        RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: trumpSuit)
+                    }
+                } else {
+                    // No trumpSuit (صن round), handle accordingly
+                    print("No trump suit selected (صن round)")
+                    self.rotatePlayersOrder(roomId: roomId){
+                        RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: nil )
+                    }
+                }
+                
+                
                 // End of trick
-                RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: .hearts)
+                //RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: .hearts)
                 return
             }
-            
             
             let nextIndex = (index + 1) % players.count
             let nextPlayer = players[nextIndex]
@@ -177,9 +193,8 @@ class RoomManager : ObservableObject{
             }
         }
     }
-
   
-    func createRoom(currentUserId: String, name: String, completion: @escaping (String?) -> Void) {
+    func createRoom(currentUserId: String, name: String ,currentUserEmail : String , completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomId = generateRoomCode()
         
@@ -190,9 +205,14 @@ class RoomManager : ObservableObject{
             "createdAt": FieldValue.serverTimestamp(),
             "status": RoomStatus.waiting.rawValue, // ممكن تبقى: waiting / playing / ended
             "gameType": "baloot",
+            "roundType": "",
             "trumpSuit": NSNull(), // لسه متحددش
             "turnPlayerId": currentUserId, // لسه متبدأش اللعبة
             "roundNumber": 1, // يبدأ من الجولة 1
+            "roundSelection": [
+                "currentSelector": playerId ?? "", // current player whose turn to choose roundType
+                "startTime": Timestamp() // when their 10s started
+            ],
             "teamScores": [
                 "team1": 0, // فريق 1 يبدأ من صفر
                 "team2": 0  // فريق 2 يبدأ من صفر
@@ -204,7 +224,8 @@ class RoomManager : ObservableObject{
                     "hand": [], // هتتحط بعد التوزيع
                     "team": 1,
                     "score": 0,
-                    "isReady": false
+                    "isReady": false,
+                    "email" : currentUserEmail
                 ]
             ],
             "currentTrick": [
@@ -260,12 +281,22 @@ class RoomManager : ObservableObject{
     func distributeCardsToPlayers(roomId: String, players: [String: [String: Any]], completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-        
-        // تأكد إن عدد اللاعبين ٤ فقط
+
         guard players.count == 4 else {
             print("Error: Number of players must be exactly 4 to distribute cards.")
             completion(false)
             return
+        }
+
+        var playerOrder : [String] = [""]
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                   let order = data["playerOrder"] as? [String],
+                  !playerOrder.isEmpty else {
+                print("Missing or invalid playerOrder.")
+                return
+            }
+            playerOrder = order
         }
         
         let allCards = [
@@ -274,34 +305,164 @@ class RoomManager : ObservableObject{
             "7♣️", "8♣️", "9♣️", "10♣️", "J♣️", "Q♣️", "K♣️", "A♣️",
             "7♦️", "8♦️", "9♦️", "10♦️", "J♦️", "Q♦️", "K♦️", "A♦️"
         ]
-        
+
         var shuffledCards = allCards.shuffled()
-        var updatedPlayers = players
-        
-        for (playerId, var playerData) in updatedPlayers {
-            let hand = Array(shuffledCards.prefix(8))
-            shuffledCards.removeFirst(8)
-            playerData["hand"] = hand
-            playerData["playedCard"] = NSNull()
-            updatedPlayers[playerId] = playerData
-        }
-        
         var updates: [String: Any] = [:]
-        for (playerId, playerData) in updatedPlayers {
-            updates["players.\(playerId)"] = playerData
+
+        // Phase 1: 5 cards each
+        for (playerId, playerData) in players {
+            let firstFive = Array(shuffledCards.prefix(5))
+            shuffledCards.removeFirst(5)
+
+            var updatedPlayer = playerData
+            updatedPlayer["hand"] = firstFive
+            updatedPlayer["playedCard"] = NSNull()
+
+            updates["players.\(playerId)"] = updatedPlayer
         }
+
+        var ground: String = ""
+        // Add 1 card to currentTrick.cards
+        if let groundCard = shuffledCards.first {
+            ground = shuffledCards.first ?? ""
+            shuffledCards.removeFirst()
+            updates["currentTrick.cards"] = [["card": groundCard, "playerId": NSNull()]]
+        }
+
+        let playerIds = Array(players.keys)
+        let firstPlayerId = playerIds.first ?? ""
+        updates["roundSelection"] = [
+            "currentSelector": firstPlayerId,
+            "startTime": FieldValue.serverTimestamp()
+        ]
+        
+        // Save first update
         roomRef.updateData(updates) { error in
             if let error = error {
-                print("Error distributing cards: \(error)")
+                print("Error during Phase 1 card distribution: \(error)")
                 completion(false)
-            } else {
-                print("Cards distributed successfully")
+                return
+            }
+
+            print("Phase 1 complete. Waiting for roundType or timeout...")
+
+            // Phase 2: Wait for roundType or timeout
+            self.waitForRoundTypeOrTimeout(roomRef: roomRef, remainingCards: shuffledCards, playerIds: playerOrder, groundCard:ground ) {
                 completion(true)
             }
         }
     }
+
+    private func waitForRoundTypeOrTimeout(roomRef: DocumentReference, remainingCards: [String], playerIds: [String], groundCard: String, completion: @escaping () -> Void) {
+        var didChooseRoundType = false
+        var listener: ListenerRegistration?
+
+        print("players order passed: \(playerIds)")
+        
+        func cleanup() {
+            listener?.remove()
+            completion()
+        }
+
+        func distributeIfNotChosen() {
+            if !didChooseRoundType {
+                print("No roundType chosen after second cycle — distributing remaining cards.")
+                self.distributeRemainingCards(roomRef: roomRef, remainingCards: remainingCards, groundCard: groundCard, playerIds: playerIds, completion: cleanup)
+            }
+        }
+
+        func listenForRoundType() {
+            listener = roomRef.addSnapshotListener { snapshot, error in
+                guard let data = snapshot?.data(),
+                      let roundType = data["roundType"] as? String,
+                      !roundType.isEmpty else {
+                    return
+                }
+                if !didChooseRoundType {
+                    didChooseRoundType = true
+                    print("roundType set to \(roundType) — distributing remaining cards.")
+                    self.distributeRemainingCards(roomRef: roomRef, remainingCards: remainingCards, groundCard: groundCard, playerIds: playerIds, completion: cleanup)
+                }
+            }
+        }
+
+        func cycleThroughSelectors(attempt: Int = 1) {
+            guard attempt <= 2 else {
+                distributeIfNotChosen()
+                return
+            }
+
+            let cycleOrder = playerIds // Always 0 → 1 → 2 → 3
+
+            func selectNext(index: Int) {
+                if index >= cycleOrder.count || didChooseRoundType {
+                    if !didChooseRoundType && attempt < 2 {
+                        print("No selection in first cycle — starting second cycle.")
+                        cycleThroughSelectors(attempt: 2)
+                    } else {
+                        distributeIfNotChosen()
+                    }
+                    return
+                }
+
+                let selector = cycleOrder[index]
+                print("Now selecting: \(selector)")
+
+                roomRef.updateData([
+                    "roundSelection.currentSelector": selector,
+                    "roundSelection.startTime": FieldValue.serverTimestamp()
+                ]) { error in
+                    if let error = error {
+                        print("Error updating selector: \(error)")
+                        return
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        if !didChooseRoundType {
+                            selectNext(index: index + 1)
+                        }
+                    }
+                }
+            }
+
+            selectNext(index: 0)
+        }
+
+        listenForRoundType()
+        cycleThroughSelectors()
+    }
+
+    private func distributeRemainingCards(roomRef: DocumentReference, remainingCards: [String], groundCard: String, playerIds: [String], completion: @escaping () -> Void) {
+        var updates: [String: Any] = [:]
+        var cards = remainingCards
+        cards.append(groundCard) // Include the trick card
+
+        for playerId in playerIds {
+            guard cards.count >= 3 else {
+                print("Error: Not enough cards to distribute to player \(playerId)")
+                break
+            }
+
+            let additionalCards = Array(cards.prefix(3))
+            cards.removeFirst(3)
+            updates["players.\(playerId).hand"] = FieldValue.arrayUnion(additionalCards)
+        }
+
+        // Clear the trick
+        updates["currentTrick.cards"] = []
+
+        roomRef.updateData(updates) { error in
+            if let error = error {
+                print("Error during Phase 2 card distribution: \(error)")
+            } else {
+                print("Phase 2 complete. All cards distributed.")
+            }
+            completion()
+        }
+    }
+
     
-    func joinRoom(roomId: String, currentUserId: String, playerName: String, completion: @escaping (Bool) -> Void) {
+    func joinRoom(roomId: String, currentUserId: String,currentUserEmail : String ,playerName: String, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
         
@@ -343,7 +504,8 @@ class RoomManager : ObservableObject{
                 "hand": [], // سيتم توزيع الكروت لاحقًا
                 "team": playersData.count % 2 + 1, // تحديد الفريق: فريق 1 أو فريق 2
                 "score": 0,
-                "isReady": false
+                "isReady": false,
+                "email":currentUserEmail
             ]
                         
             // تحديث بيانات الغرفة في Firestore
@@ -359,7 +521,7 @@ class RoomManager : ObservableObject{
         }
     }
     
-    func joinRoom(roomId: String, currentUserId: String, playerName: String, teamChoice: Int, completion: @escaping (Bool) -> Void) {
+    func joinRoom(roomId: String, currentUserId: String, playerName: String,currentUserEmail : String , teamChoice: Int, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
         
@@ -409,7 +571,8 @@ class RoomManager : ObservableObject{
                 "hand": [], // سيتم توزيع الكروت لاحقًا
                 "team": teamChoice, // تحديد الفريق حسب اختيار اللاعب
                 "score": 0,
-                "isReady": false
+                "isReady": false,
+                "email" : currentUserEmail
             ]
             
             // تحديث بيانات الغرفة في Firestore
@@ -426,25 +589,39 @@ class RoomManager : ObservableObject{
     }
     
     // دالة لتحديد الفائز في الجولة
-    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: Suit) -> String? {
-        var highestCard: String = ""
-        var highestCardValue: Int = 0
-        var winnerPlayerId: String?
-        
+    // MARK: - Main Function to Calculate Trick Winner
+    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: Suit?) -> String? {
+        guard !cardsInTrick.isEmpty else { return nil }
+
+        let leadCard = cardsInTrick.first!.value
+        let leadSuit = getSuit(card: leadCard)
+
+        var highestCardValue = -1
+        var winningPlayerId: String?
+
         for (playerId, card) in cardsInTrick {
-            let isTrump = isTrumpCard(card: card, trumpSuit: trumpSuit)
-            let cardValue = getCardPoints(card: card, trumpSuit: trumpSuit, isTrumpGame: isTrump)
-            
-            // إذا كانت الورقة أعلى من الورقة الحالية
-            if cardValue > highestCardValue {
-                highestCardValue = cardValue
-                highestCard = card
-                winnerPlayerId = playerId
+            let cardSuit = getSuit(card: card)
+            let isTrump = trumpSuit != nil && card.contains(trumpSuit!.rawValue)
+            let isSameSuitAsLead = cardSuit == leadSuit
+
+            let isTrumpGame = trumpSuit != nil
+
+            // Non-trump cards are only valid if they follow the lead suit in "صن"
+            let validCard = isTrump || isSameSuitAsLead
+
+            if validCard {
+                let cardValue = getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
+
+                if cardValue > highestCardValue {
+                    highestCardValue = cardValue
+                    winningPlayerId = playerId
+                }
             }
         }
-        
-        return winnerPlayerId
+
+        return winningPlayerId
     }
+
     
     // دالة لحساب النقاط بناءً على الورقة
     func getCardPoints(card: String, trumpSuit: Suit, isTrumpGame: Bool) -> Int {
@@ -465,19 +642,14 @@ class RoomManager : ObservableObject{
     
     
     // دالة لحساب قيمة الورقة
+    // Get numeric value of a card
     func getCardValue(card: String, trumpSuit: String?, isTrumpGame: Bool) -> Int {
-        // استخرج الرتبة والسوت
-        let suits = ["♠️", "♥️", "♣️", "♦️"]
-        guard let suit = suits.first(where: { card.contains($0) }) else { return 0 }
-        
-        // استخرج الرتبة (زي "J", "10", "A"...)
-        let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
-        guard let rank = ranks.first(where: { card.contains($0) }) else { return 0 }
-        
-        let isTrump = (trumpSuit != nil && suit == trumpSuit)
-        
+        let suit = getSuit(card: card)
+        let rank = getRank(card: card)
+        let isTrump = trumpSuit != nil && suit == trumpSuit
+
         if isTrumpGame && isTrump {
-            // قيم الكروت في الحكم
+            // حكم (Trump) values
             switch rank {
             case "J": return 20
             case "9": return 14
@@ -488,7 +660,7 @@ class RoomManager : ObservableObject{
             default: return 0
             }
         } else {
-            // قيم الكروت في صن أو غير الحكم
+            // صن (No trump) values
             switch rank {
             case "A": return 11
             case "10": return 10
@@ -499,12 +671,25 @@ class RoomManager : ObservableObject{
             }
         }
     }
+
+    // Extract suit symbol from card string
+    func getSuit(card: String) -> String {
+        let suits = ["♠️", "♥️", "♣️", "♦️"]
+        return suits.first(where: { card.contains($0) }) ?? ""
+    }
+
+    // Extract rank from card string
+    func getRank(card: String) -> String {
+        let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
+        return ranks.first(where: { card.contains($0) }) ?? ""
+    }
+
     
     // دالة لتحديث النقاط بعد انتهاء الجولة
-    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit) {
+    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit?) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-
+        
         guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
             print("Could not determine trick winner.")
             return
@@ -514,21 +699,26 @@ class RoomManager : ObservableObject{
         roomRef.getDocument { document, error in
             guard let doc = document, doc.exists,
                   var playersData = doc.data()?["players"] as? [String: [String: Any]],
+                  let players = doc.data()?["playerOrder"] as? [String],
                   var teamScores = doc.data()?["teamScores"] as? [String: Int],
                   let round = doc.data()?["roundNumber"] as? Int else {
                 return
             }
-
+            
             let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
-
-            if winningTeam == "team1" {
-                teamScores["team1"] = (teamScores["team1"] ?? 0) + 10
-            } else {
-                teamScores["team2"] = (teamScores["team2"] ?? 0) + 10
+            let isTrumpGame = (trumpSuit != nil)
+            
+            var totalPoints = 0
+            for (_, card) in cardsInTrick {
+                totalPoints += self.getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
             }
-
+            
+            print("Total trick points: \(totalPoints)")
+            
+            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+            
             roomRef.updateData([
-                "turnPlayerId": winnerPlayerId,
+                "turnPlayerId": players.first,
                 "currentTrick": ["cards": [:]],
                 "roundNumber": round + 1,
                 "teamScores": teamScores
@@ -541,6 +731,30 @@ class RoomManager : ObservableObject{
         }
     }
 
+    func rotatePlayersOrder(roomId: String, completion: @escaping () -> Void) {
+        let roomRef = Firestore.firestore().collection("rooms").document(roomId)
+
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                  let playerOrder = data["playerOrder"] as? [String],
+                  !playerOrder.isEmpty else {
+                print("Missing or invalid playerOrder.")
+                return
+            }
+
+            // Rotate: move first element to end
+            let rotatedOrder = Array(playerOrder.dropFirst()) + [playerOrder.first!]
+
+            roomRef.updateData(["playerOrder": rotatedOrder]) { error in
+                if let error = error {
+                    print("Failed to rotate playerOrder: \(error)")
+                } else {
+                    print("Player order rotated: \(rotatedOrder)")
+                    completion()
+                }
+            }
+        }
+    }
     
     // دالة لتحديد الفريق الفائز بناءً على اللاعب الفائز بالجولة
     func getWinningTeam(playerId: String, playersData: [String: [String: Any]]) -> String {
@@ -561,7 +775,7 @@ class RoomManager : ObservableObject{
         return nextPlayer?.key ?? currentTurnPlayerId
     }
     
-    func autoJoinOrCreateRoom(currentUserId: String, playerName: String, completion: @escaping (String?) -> Void) {
+    func autoJoinOrCreateRoom(currentUserId: String,currentUserEmail : String ,playerName: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         let roomsRef = db.collection("rooms")
         
@@ -596,14 +810,14 @@ class RoomManager : ObservableObject{
             // If a joinable room is found, attempt to join it
             if let room = joinableRoom {
                 let roomId = room.documentID
-                self.joinRoom(roomId: roomId, currentUserId: currentUserId, playerName: playerName) { success in
+                self.joinRoom(roomId: roomId, currentUserId: currentUserId, currentUserEmail: currentUserEmail, playerName: playerName) { success in
                     if success {
                         print("Joined existing room: \(roomId)")
                         completion(roomId)
                     } else {
                         print("Could not join room, creating a new one.")
                         // If join failed, create a new room
-                        self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                        self.createRoom(currentUserId: currentUserId,name: playerName, currentUserEmail: currentUserEmail) { newRoomId in
                             completion(newRoomId)
                         }
                     }
@@ -611,7 +825,7 @@ class RoomManager : ObservableObject{
             } else {
                 // No room found, create a new one
                 print("No available room found. Creating a new room.")
-                self.createRoom(currentUserId: currentUserId, name: playerName) { newRoomId in
+                self.createRoom(currentUserId: currentUserId, name: playerName, currentUserEmail: currentUserEmail) { newRoomId in
                     completion(newRoomId)
                 }
             }

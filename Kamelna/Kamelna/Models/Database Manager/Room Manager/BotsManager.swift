@@ -11,7 +11,7 @@ import FirebaseFirestore
 class BotsManager{
     static let shared = BotsManager()
     
-    func startBotTimerAfterCreatingRoom(roomId: String, completion: @escaping () -> Void) {
+    func startBotTimerAfterCreatingRoom(roomId: String, completion: @escaping ([String: [String: Any]]) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             let roomRef = Firestore.firestore().collection("rooms").document(roomId)
             
@@ -19,12 +19,12 @@ class BotsManager{
                 guard let data = snapshot?.data(),
                       var players = data["players"] as? [String: [String: Any]],
                       var playerOrder = data["playerOrder"] as? [String] else {
-                    completion()
+                    completion([:])
                     return
                 }
 
                 if players.count >= 4 {
-                    completion()
+                    completion(players)
                     return
                 }
 
@@ -41,16 +41,17 @@ class BotsManager{
                 ]) { error in
                     if let error = error {
                         print("Error updating room: \(error)")
-                        completion()
+                        completion([:])
                         return
                     }
 
+                    completion(updatedPlayers)
                     // Distribute cards
-                    RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
+                    /*RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
                         
                         print("Bots added: \(updatedPlayers.count - players.count), cards distributed: \(success)")
                         completion()
-                    }
+                    }*/
                 }
             }
         }

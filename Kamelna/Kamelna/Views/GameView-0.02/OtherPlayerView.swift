@@ -10,8 +10,17 @@ import SwiftUI
 struct OtherPlayerView: View {
     let player: Player
     let cardCount: Int
+
+    @State var isLike = false
+    @ObservedObject var profileViewModel = ProfileViewModel()
+
     let seatPosition: PlayerSeatPosition
+<<<<<<< HEAD
     @ObservedObject var profileViewModel : ProfileViewModel
+=======
+
+
+>>>>>>> 14154c7b350c6b9e94ed87aae599dc998886fb96
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
@@ -42,8 +51,17 @@ struct OtherPlayerView: View {
                     .zIndex(1)
             }
 
-            Text(player.name ?? "الاسم غير معروف")
-                .font(.headline)
+            HStack {
+                Text(player.name ?? "الاسم غير معروف")
+                    .font(.headline)
+                Button {
+                    isLike.toggle()
+                    profileViewModel.updateHearts(email: player.email ?? "",isLike: isLike ? 1:-1)
+                } label: {
+                    Image(systemName: "hand.thumbsup.fill").foregroundStyle(isLike ? .white:.black)
+                }
+
+            }
 
             let playerTeam = player.team ?? 0
             let playerScore = player.score ?? 0

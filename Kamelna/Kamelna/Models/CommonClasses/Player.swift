@@ -15,6 +15,7 @@ struct Player: Identifiable, Codable {
     var team: Int?
     var score: Int?
     var isReady: Bool?
+    var email : String?
 }
 
 enum PlayerSeatPosition {

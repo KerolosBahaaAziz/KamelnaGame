@@ -4,6 +4,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import Cloudinary
+
 final class UserManager{
     let currentUserEmail = Auth.auth().currentUser?.email
     let creationDate = Auth.auth().currentUser?.metadata.creationDate
@@ -11,7 +12,7 @@ final class UserManager{
     private let collection = "User_Data"
     private let cloudinary: CLDCloudinary
     static let shared = UserManager()
-    static var docId : String?
+   // static var currentUserDocId : String?
     
     private init(){
          let config = CLDConfiguration(cloudName: "dohnxmenv", secure: true)
@@ -45,11 +46,13 @@ final class UserManager{
             brief: brief,
             hearts: hearts,
             rank: rank,
+
             rankPoints: rankPoints,
             medal: medal,
             creationDate: creationDate,
             friendList: friendList
         )
+
     }
     
     func fetchUserByEmail(email: String, completion: @escaping (User?) -> Void) {
@@ -70,11 +73,11 @@ final class UserManager{
                 }
                 
                 let user = self.parseUserDocument(document)
-                UserManager.docId=document.documentID
+                
                 completion(user)
             }
     }
-    
+   // func fetchUserDocId()
     func saveUser(user : User) {
         
         let userData: [String: Any] = [
@@ -103,7 +106,7 @@ final class UserManager{
     
     func userDocumentRef(for user: User) -> DocumentReference {
         
-        return db.collection(collection).document(UserManager.docId ?? "")
+        return db.collection(collection).document(user.docId ?? "")
     }
     // remeber to add type check in the function in the future
     func updateUserData(user: User, enumField: UserFireStoreAttributes,value: Any){
