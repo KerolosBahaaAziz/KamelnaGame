@@ -54,18 +54,23 @@ class PublicCupManager {
     }
     
     // Join a cup (e.g., add user to a participants array)
-    func joinCup(cupID: String, userID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func joinCup(cupID: String, participant: Participants, completion: @escaping (Result<Void, Error>) -> Void) {
         let cupRef = db.collection(cupsCollection).document(cupID)
         
         // Update the participants array in Firestore (assuming a participants field exists)
-        cupRef.updateData([
-            "participants": FieldValue.arrayUnion([userID])
-        ]) { error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
+        do {
+            let data = try Firestore.Encoder().encode(participant)
+            cupRef.updateData([
+                "participants": FieldValue.arrayUnion([data])
+            ]) { error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    completion(.success(()))
+                }
             }
+        } catch {
+            completion(.failure(error))
         }
     }
     

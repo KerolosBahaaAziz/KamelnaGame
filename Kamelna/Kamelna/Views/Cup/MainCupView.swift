@@ -8,77 +8,80 @@
 import SwiftUI
 
 struct MainCupView: View {
-    @State private var selectedTab = 1
-        
+    @State private var selectedTab = 2
+    @ObservedObject var viewModel = CupViewModel()
+
     var body: some View {
-        ZStack{
-            BackgroundGradient.backgroundGradient.ignoresSafeArea()
-            VStack(spacing: 0) {
-                // Custom Tab Bar
-                HStack(spacing: 0){
-                    Button(action :{
+        NavigationView{
+            ZStack{
+                BackgroundGradient.backgroundGradient.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    // Custom Tab Bar
+                    HStack(spacing: 0){
+                        Button(action :{
+                            
+                        }){
+                            Text("مساعدة")
+                                .padding(5)
+                                .padding(.horizontal , 10)
+                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                                .background(ButtonBackGroundColor.backgroundGradient)
+                                .cornerRadius(20)
+                        }
                         
-                    }){
-                        Text("مساعدة")
-                            .padding(5)
-                            .padding(.horizontal , 10)
+                        Spacer()
+                        
+                        Text("الدوريات")
+                            .font(.title)
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                            .background(ButtonBackGroundColor.backgroundGradient)
-                            .cornerRadius(20)
+                        
+                        Spacer()
+                        
+                        Button(action :{
+                            
+                        }){
+                            Text("عودة")
+                                .padding(5)
+                                .padding(.horizontal , 10)
+                                .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                                .background(ButtonBackGroundColor.backgroundGradient)
+                                .cornerRadius(20)
+                        }
+                        
                     }
+                    .padding()
+                    HStack(spacing: 0) {
+                        iconButtonView(iconName: "PrivateCup", label: "دوريات خاصه", tabIndex: 0)
+                        iconButtonView(iconName: "GameCup", label: "دوريات اربعة", tabIndex: 1)
+                        iconButtonView(iconName: "PublicCup", label: "دوريات عامه", tabIndex: 2)
+                    }
+                    .padding()
+                    .background(ButtonBackGroundColor.backgroundGradient)
+                    .cornerRadius(20)
+                    
+                    
+                    // Content View
+                    Group {
+                        switch selectedTab {
+                        case 0:
+                            Text("Content for Tab 1")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color.red.opacity(0.1))
+                        case 1:
+                            Text("Content for Tab 2")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(Color.green.opacity(0.1))
+                        case 2:
+                            PublicCup()
+                                .padding()
+                        default:
+                            EmptyView()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     Spacer()
-                    
-                    Text("الدوريات")
-                        .font(.title)
-                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    
-                    Spacer()
-                    
-                    Button(action :{
-                        
-                    }){
-                        Text("عودة")
-                            .padding(5)
-                            .padding(.horizontal , 10)
-                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                            .background(ButtonBackGroundColor.backgroundGradient)
-                            .cornerRadius(20)
-                    }
-                    
                 }
-                .padding()
-                HStack(spacing: 0) {
-                    iconButtonView(iconName: "PrivateCup", label: "دوريات خاصه", tabIndex: 0)
-                    iconButtonView(iconName: "GameCup", label: "دوريات اربعة", tabIndex: 1)
-                    iconButtonView(iconName: "PublicCup", label: "دوريات عامه", tabIndex: 2)
-                }
-                .padding()
-                .background(ButtonBackGroundColor.backgroundGradient)
-                .cornerRadius(20)
-                
-                
-                // Content View
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        Text("Content for Tab 1")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.red.opacity(0.1))
-                    case 1:
-                        Text("Content for Tab 2")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.green.opacity(0.1))
-                    case 2:
-                        PublicCup()
-                            .padding()
-                    default:
-                        EmptyView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                Spacer()
             }
         }
     }

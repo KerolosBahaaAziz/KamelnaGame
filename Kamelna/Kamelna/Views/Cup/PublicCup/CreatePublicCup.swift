@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct CreatePublicCup: View {
     @Environment(\.dismiss) private var dismiss
@@ -16,15 +17,15 @@ struct CreatePublicCup: View {
     
     @State private var startImmediately: Bool = true
     @State private var startDelay: Date = Date()
-
+    
+    @State private var scheduledHours: Int = 0
     @State private var scheduledMinutes: Int = 15
-    @State private var scheduledSeconds: Int = 0
-
+    
     @State private var numberOfTeams: String = "8 فريق/16 عضو"
     @State private var matchType: String = "قهوه واحده"
-    @State private var gameType: String = "Trivia"
-    @State private var innerGameTimerSeconds: String = "30"
-    @State private var minLevelRequired: String = "1"
+    @State private var gameType: String = "لعب حر"
+    @State private var innerGameTimerSeconds: String = "5 ثوان"
+    @State private var minLevelRequired: String = "مبتدئ"
     @State private var firstPlacePrize: String = "100"
     @State private var secondPlacePrize: String = ""
     @State private var thirdPlacePrize: String = ""
@@ -35,48 +36,92 @@ struct CreatePublicCup: View {
     @State private var showSessionSettingsPopup = false
     @State private var showCupSettingsPopup = false
     
-    private let gameTypeOptions = ["Trivia", "Quiz", "Puzzle"]
-    
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                BackgroundGradient.backgroundGradient
-                    .ignoresSafeArea()
+        ZStack {
+            BackgroundGradient.backgroundGradient
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 10) {
+                        CupNameSection(cupName: $cupName)
+                        SettingsSection(
+                            showSessionSettingsPopup: $showSessionSettingsPopup,
+                            showCupSettingsPopup: $showCupSettingsPopup,
+                            startImmediately: $startImmediately,
+                            gameType: $gameType,
+                            gameTimer: $innerGameTimerSeconds,
+                            minimumLevel: $minLevelRequired,
+                            teamNumber: $numberOfTeams
+                        )
+                        PrizeSection(
+                            firstPlacePrize: $firstPlacePrize,
+                            secondPlacePrize: $secondPlacePrize,
+                            thirdPlacePrize: $thirdPlacePrize
+                        )
+                        //                        Spacer().frame(height: 80) // Space for the button
+                    }
+                    .padding()
+                    .background(SecondaryBackgroundGradient.backgroundGradient)
+                    .cornerRadius(20)
+                    .padding(.horizontal, 20)
+                    .environment(\.layoutDirection, .rightToLeft)
+                }
                 
-                mainFormView
                 
-                popupOverlays
-            }
-            .navigationTitle("إنشاء دوري عام")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("إلغاء") { dismiss() }
+                Button(action: {
+                    createCup()
+                }) {
+                    Text("إنشاء الدوري")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .cornerRadius(10)
+                        .padding(.horizontal, 20)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("إنشاء") { createCup() }
-                        .disabled(!isFormValid)
-                }
+                .padding(.bottom, 10)
             }
-            .alert(isPresented: $showError) {
-                Alert(title: Text("خطأ"), message: Text(errorMessage), dismissButton: .default(Text("حسنًا")))
+            
+            popupOverlays
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("إلغاء") { dismiss() }
+                    .padding(5)
+//                    .padding(.horizontal , 10)
+                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                    .background(ButtonBackGroundColor.backgroundGradient)
+                    .cornerRadius(20)
             }
-            .overlay {
-                if viewModel.isLoading {
-                    ProgressView()
-                }
-            }
-            .onChange(of: viewModel.errorMessage) { _, newValue in
-                if let error = newValue {
-                    errorMessage = error
-                    showError = true
-                }
-            }
-            .onChange(of: viewModel.isLoading) { _, isLoading in
-                if !isLoading && viewModel.errorMessage == nil {
-                    dismiss()
-                }
+//            ToolbarItem(placement: .principal) {
+//                Text("إنشاء دوري عام")
+//                    .font(.headline)
+//                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient) // Change this as needed
+//            }
+        }
+        .alert(isPresented: $showError) {
+            Alert(title: Text("خطأ"), message: Text(errorMessage), dismissButton: .default(Text("حسنًا")))
+        }
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView()
             }
         }
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if let error = newValue {
+                errorMessage = error
+                showError = true
+            }
+        }
+        .onChange(of: viewModel.isLoading) { _, isLoading in
+            if !isLoading && viewModel.errorMessage == nil {
+                dismiss()
+            }
+        }
+        .navigationBarBackButtonHidden(true)
     }
     
     
@@ -89,36 +134,67 @@ struct CreatePublicCup: View {
     }
     
     private func createCup() {
-        guard let numberOfTeams = Int(numberOfTeams),
-              let innerGameTimerSeconds = Int(innerGameTimerSeconds),
-              let minLevelRequired = Int(minLevelRequired),
-              let firstPlacePrize = Int(firstPlacePrize) else {
-            errorMessage = "يرجى التأكد من أن جميع الحقول الرقمية تحتوي على أرقام صحيحة."
+        // Mappings
+        let teamsMapping: [String: Int] = [
+            "8 فريق/16 عضو": 16 ,
+            "16 فريق/32 عضو": 32 ,
+            "32 فريق/64 عضو": 64
+        ]
+        
+        let timerMapping: [String: Int] = [
+            "5 ثوان": 5,
+            "10 ثوان": 10,
+            "30 ثانية": 30
+        ]
+        
+        let levelMapping: [String: Int] = [
+            "مبتدئ": 1,
+            "متوسط": 2,
+            "متقدم": 3,
+            "محترف": 4,
+            "خبير": 5,
+            "نابغه": 6
+        ]
+        
+        // Parse values
+        guard let parsedTeams = teamsMapping[numberOfTeams],
+              let parsedTimer = timerMapping[innerGameTimerSeconds],
+              let parsedLevel = levelMapping[minLevelRequired],
+              let parsedFirstPrize = Int(firstPlacePrize),
+              let userName = Auth.auth().currentUser?.displayName ,
+        !cupName.isEmpty else {
+            errorMessage = "يرجى التأكد من إدخال الحقول بشكل صحيح."
             showError = true
             return
         }
         
+        let parsedSecondPrize = Int(secondPlacePrize)
+        let parsedThirdPrize = Int(thirdPlacePrize)
+        
+        let totalDelayMinutes = scheduledHours*60 + scheduledMinutes
+        // Construct settings
         let settings = CupSettings(
             startImmediately: startImmediately,
-            startDelay: startImmediately ? nil : startDelay,
-            numberOfTeams: numberOfTeams,
+            startDelay: startImmediately ? Calendar.current.date(byAdding: .minute, value: 15, to: Date()) : Calendar.current.date(byAdding: .minute, value: totalDelayMinutes, to: Date()),
+            numberOfPlayers: parsedTeams,
             matchType: matchType
         )
         
         let gameSettings = GameSettings(
             gameType: gameType,
-            innerGameTimerSeconds: innerGameTimerSeconds,
-            minLevelRequired: minLevelRequired
+            innerGameTimerSeconds: parsedTimer,
+            minLevelRequired: parsedLevel
         )
         
         let prize = CupPrize(
-            firstPlace: firstPlacePrize,
-            secondPlace: secondPlacePrize.isEmpty ? nil : Int(secondPlacePrize),
-            thirdPlace: thirdPlacePrize.isEmpty ? nil : Int(thirdPlacePrize)
+            firstPlace: parsedFirstPrize,
+            secondPlace: parsedSecondPrize,
+            thirdPlace: parsedThirdPrize
         )
         
         viewModel.createCup(
             name: cupName,
+            creatorName: userName,
             settings: settings,
             gameSettings: gameSettings,
             prize: prize,
@@ -126,13 +202,19 @@ struct CreatePublicCup: View {
         )
     }
     
+    
     private var mainFormView: some View {
         ScrollView {
             VStack(spacing: 10) {
                 CupNameSection(cupName: $cupName)
                 SettingsSection(
                     showSessionSettingsPopup: $showSessionSettingsPopup,
-                    showCupSettingsPopup: $showCupSettingsPopup, startImmediately: $startImmediately
+                    showCupSettingsPopup: $showCupSettingsPopup,
+                    startImmediately: $startImmediately,
+                    gameType: $gameType,
+                    gameTimer: $innerGameTimerSeconds,
+                    minimumLevel: $minLevelRequired,
+                    teamNumber: $numberOfTeams
                 )
                 PrizeSection(
                     firstPlacePrize: $firstPlacePrize,
@@ -154,7 +236,8 @@ struct CreatePublicCup: View {
         if showSessionSettingsPopup {
             PopupOverlay(
                 title: "إعدادات الجلسه",
-                content: { Text("محتوى إعدادات الجلسه (يحتاج إلى تنفيذ)") },
+                content: { CupGameSettings(gameType: $gameType, gameTimer: $innerGameTimerSeconds, minimumLevel: $minLevelRequired)
+                },
                 onDismiss: { showSessionSettingsPopup = false }
             )
         }
@@ -172,14 +255,14 @@ struct CreatePublicCup: View {
                                 startImmediately = (newValue == "فوري")
                             }
                         ),
-                        scheduledMinutes: $scheduledMinutes,
-                        scheduledSeconds: $scheduledSeconds
+                        scheduledHours: $scheduledHours,
+                        scheduledMinutes: $scheduledMinutes
                     )
                 },
                 onDismiss: { showCupSettingsPopup = false }
             )
         }
-
+        
     }
 }
 

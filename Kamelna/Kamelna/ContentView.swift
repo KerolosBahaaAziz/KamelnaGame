@@ -92,7 +92,7 @@ struct ContentView: View {
 //        HomeView()
 //        JoinRoomByCode()
 //      ProfileView()
-        CreatePublicCup()
+        MainCupView()
     }
 }
 

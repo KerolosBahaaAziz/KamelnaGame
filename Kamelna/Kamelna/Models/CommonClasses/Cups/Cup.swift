@@ -12,17 +12,19 @@ import FirebaseFirestore
 struct Cup : Identifiable, Codable{
     @DocumentID var id : String? = UUID().uuidString
     var name : String
+    var creatorName : String
     var settings : CupSettings
     var gameSettings : GameSettings
     var prize : CupPrize
     var createdAt : Date
     var creatorID: String
+    var participants : [Participants] = []
 }
 
 struct CupSettings : Codable{
     var startImmediately : Bool
     var startDelay : Date?
-    var numberOfTeams : Int
+    var numberOfPlayers : Int
     var matchType : String
 }
 
@@ -36,4 +38,10 @@ struct CupPrize : Codable{
     var firstPlace : Int
     var secondPlace : Int?
     var thirdPlace : Int?
+}
+
+struct Participants : Codable{
+    var participantID : String
+    var name : String
+    var teamNumber : Int
 }

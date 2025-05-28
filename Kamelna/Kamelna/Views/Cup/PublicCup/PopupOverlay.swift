@@ -20,7 +20,7 @@ struct PopupOverlay<Content: View>: View {
                 
                 content()
                 
-                Button("إغلاق") {
+                Button("عودة") {
                     onDismiss()
                 }
                 .padding()

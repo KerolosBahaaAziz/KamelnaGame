@@ -11,12 +11,13 @@ class CupViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     // Create a new cup
-    func createCup(name: String, settings: CupSettings, gameSettings: GameSettings, prize: CupPrize, creatorID: String) {
+    func createCup(name: String ,creatorName : String, settings: CupSettings, gameSettings: GameSettings, prize: CupPrize, creatorID: String) {
         isLoading = true
         errorMessage = nil
         
         let newCup = Cup(
             name: name,
+            creatorName: creatorName,
             settings: settings,
             gameSettings: gameSettings,
             prize: prize,
@@ -78,11 +79,11 @@ class CupViewModel: ObservableObject {
     }
     
     // Join a cup
-    func joinCup(cupID: String, userID: String) {
+    func joinCup(cupID: String, participant: Participants) {
         isLoading = true
         errorMessage = nil
-        
-        cupManager.joinCup(cupID: cupID, userID: userID) { [weak self] result in
+
+        cupManager.joinCup(cupID: cupID, participant: participant) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
                 switch result {
