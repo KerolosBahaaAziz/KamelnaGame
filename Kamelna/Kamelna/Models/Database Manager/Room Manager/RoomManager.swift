@@ -717,6 +717,37 @@ class RoomManager : ObservableObject{
             
             teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
             
+            // Check if any team reached or passed 152 points
+            let gameEnded = teamScores.values.contains(where: { $0 >= 152 })
+            
+            if round >= 8 {
+                self.rotatePlayersOrder(roomId: roomId) {
+                    let playersNewOrder = doc.data()?["playerOrder"] as? [String]
+                    roomRef.updateData([
+                        "turnPlayerId": playersNewOrder?.first,
+                        "currentTrick": ["cards": [:]],
+                        "roundNumber": 1,
+                        "roundType": "",
+                        "trumpSuit": NSNull(),
+                        "teamScores": teamScores
+                    ]) { error in
+                        if error == nil {
+                            print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
+                            RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                        }
+                    }
+                    
+                    self.distributeCardsToPlayers(roomId: roomId, players: playersData) { suceess in
+                        if suceess{
+                            print("you sucess begin game 2")
+                        }else{
+                            print("Failed to begin game 2")
+                        }
+                    }
+                }
+                return
+            }
+            
             roomRef.updateData([
                 "turnPlayerId": players.first,
                 "currentTrick": ["cards": [:]],
