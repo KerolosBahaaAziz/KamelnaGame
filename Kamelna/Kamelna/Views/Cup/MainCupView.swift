@@ -10,6 +10,7 @@ import SwiftUI
 struct MainCupView: View {
     @State private var selectedTab = 2
     @ObservedObject var viewModel = CupViewModel()
+    
 
     var body: some View {
         NavigationView{

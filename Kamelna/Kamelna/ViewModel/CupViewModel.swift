@@ -17,12 +17,11 @@ class CupViewModel: ObservableObject {
         
         let newCup = Cup(
             name: name,
+            creatorID: creatorID,
             creatorName: creatorName,
             settings: settings,
             gameSettings: gameSettings,
-            prize: prize,
-            createdAt: Date(),
-            creatorID: creatorID
+            prize: prize
         )
         
         cupManager.createCup(newCup) { [weak self] result in
@@ -83,6 +82,12 @@ class CupViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        if checkIfParticipantIsAlreadyInCup(participant, in: cupID) {
+                self.isLoading = false
+                self.errorMessage = "You are already in this cup."
+                return
+            }
+        
         cupManager.joinCup(cupID: cupID, participant: participant) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
@@ -94,5 +99,13 @@ class CupViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    private func checkIfParticipantIsAlreadyInCup(_ participant: Participants, in cupID: String) -> Bool {
+        guard let cup = cups.first(where: { $0.id == cupID }) else {
+            return false
+        }
+        
+        return cup.participants.contains(where: { $0.participantID == participant.participantID })
     }
 }

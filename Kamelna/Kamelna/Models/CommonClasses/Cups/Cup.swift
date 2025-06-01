@@ -18,7 +18,24 @@ struct Cup : Identifiable, Codable{
     var prize : CupPrize
     var createdAt : Date
     var creatorID: String
-    var participants : [Participants] = []
+    var participants : [Participants]
+    
+    init(name: String, creatorID: String, creatorName: String,
+         settings: CupSettings, gameSettings: GameSettings, prize: CupPrize) {
+        self.name = name
+        self.creatorID = creatorID
+        self.creatorName = creatorName
+        self.settings = settings
+        self.gameSettings = gameSettings
+        self.prize = prize
+        self.createdAt = Date()
+        
+        // First participant is the creator
+        let creatorParticipant = Participants(participantID: creatorID,
+                                              name: creatorName,
+                                              teamNumber: 1)
+        self.participants = [creatorParticipant]
+    }
 }
 
 struct CupSettings : Codable{

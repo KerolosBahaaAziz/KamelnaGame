@@ -36,7 +36,7 @@ struct PublicCup: View {
                                 JoinPublicCupView(cup: cup)
                             }
                         }
-                        .padding()
+//                        .padding()
                     }
                 }
                 

@@ -89,12 +89,11 @@ struct CreatePublicCup: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("إلغاء") { dismiss() }
-                    .padding(5)
-//                    .padding(.horizontal , 10)
-                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    .background(ButtonBackGroundColor.backgroundGradient)
-                    .cornerRadius(20)
+                Button(action: {
+                    dismiss()
+                },label: {
+                    TextManager.textFormater("عوده")
+                })
             }
 //            ToolbarItem(placement: .principal) {
 //                Text("إنشاء دوري عام")
