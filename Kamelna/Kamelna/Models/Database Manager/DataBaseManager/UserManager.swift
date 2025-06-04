@@ -37,6 +37,9 @@ final class UserManager{
         let medal = data["medal"] as? Int ?? 0
         let creationDate = data["creationDate"] as? String ?? ""
         let friendList =  data["FriendList"] as? [String] ?? [String]()
+        let sentFriendList =  data["SentFriendList"] as? [String] ?? [String]()
+        let recievedFriendList =  data["RecievedFriendList"] as? [String] ?? [String]()
+        
         return User(
             firstName: firstName,
             lastName: lastName,
@@ -46,11 +49,13 @@ final class UserManager{
             brief: brief,
             hearts: hearts,
             rank: rank,
-
             rankPoints: rankPoints,
             medal: medal,
             creationDate: creationDate,
-            friendList: friendList
+            friendList: friendList,
+            sentFriendList: sentFriendList,
+            recievedFriendList: recievedFriendList,
+            docId : document.documentID
         )
 
     }
@@ -92,7 +97,9 @@ final class UserManager{
             "Rank_Points": user.rankPoints ,
             "medal":user.medal,
             "creationDate":user.creationDate,
-            "FriendList":user.friendList]
+            "FriendList":user.friendList,
+            "SentFriendList":user.sentFriendList,
+            "RecievedFriendList":user.recievedFriendList]
         
         db.collection(collection).addDocument(data: userData) { error in
             if let error = error {

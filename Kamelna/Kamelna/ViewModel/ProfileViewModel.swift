@@ -49,15 +49,32 @@ class ProfileViewModel : ObservableObject{
            updateUser(enumField: .rank, value: newRank)
            updateUser(enumField: .rankPoints, value: rankPoints)
     }
-
+    
     func updateFriendList(email : String){
         guard let user = user else{return}
         var friendList = user.friendList
         friendList.append(email)
+        //print (friendList.first)
         updateUser(enumField: .friendList, value: friendList)
         
     }
-
+    func updateSentAndRecieveFriendsList(email : String){
+        guard let user = user else{return}
+        var sentFriendList = user.sentFriendList
+        sentFriendList.append(email)
+       // print (sentFriendList.first)
+        updateUser(enumField: .sentFriendList, value: sentFriendList)
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print(email)
+                return}
+            var tempRecieveList = user.recievedFriendList
+            tempRecieveList.append(self.user?.email ?? "")
+            UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
+            
+        }
+    }
+   
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             guard let user = user else {
@@ -99,6 +116,18 @@ class ProfileViewModel : ObservableObject{
         // Calculate normalized percentage toward the next rank
         let progress = (currentPoints - currentThreshold) / range
         return min(max(progress, 0.0), 1.0) // Clamp between 0 and 1
+    }
+    func isFriend(email:String)->Bool{
+        if (user?.friendList.first(where: {$0 == email})) != nil{
+            return true
+        } else{
+            if (user?.sentFriendList.first(where: {$0 == email})) != nil{
+                return true
+            } else{
+                return false
+            }
+        }
+     
     }
 
         

@@ -44,9 +44,22 @@
 		F58D59AD2DBF8689007AE133 /* KamelnaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KamelnaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B4A519582DE43406009E8263 /* Exceptions for "Kamelna" folder in "Kamelna" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F58D598D2DBF8687007AE133 /* Kamelna */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F58D59902DBF8687007AE133 /* Kamelna */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B4A519582DE43406009E8263 /* Exceptions for "Kamelna" folder in "Kamelna" target */,
+			);
 			path = Kamelna;
 			sourceTree = "<group>";
 		};

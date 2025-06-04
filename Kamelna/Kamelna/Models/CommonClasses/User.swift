@@ -20,8 +20,9 @@ struct User {
     var rankPoints = 0
     var medal = 0
     var creationDate : String
-
     var friendList = [String]()
+    var sentFriendList = [String]()
+    var recievedFriendList = [String]()
     var docId : String?
 
 
@@ -39,6 +40,8 @@ enum UserFireStoreAttributes: String {
     case medal = "medal"
     case creationDate = "creationDate"
     case friendList = "FriendList"
+    case sentFriendList = "SentFriendList"
+    case recievedFriendList = "RecievedFriendList"
 }
 
 struct RankCategory {
