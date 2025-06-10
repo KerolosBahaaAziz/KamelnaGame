@@ -65,21 +65,23 @@ struct BottomButtonsView: View {
                     print("بس clicked")
                     chooseRoundType("بس")
                 })
-                .disabled(!isMyTurn)
+                //.disabled(!isMyTurn)
                 
                 Spacer()
                 
                 actionButton(title: "حكم", action: {
                     print("حكم clicked")
                     chooseRoundType("حكم")
-                }).disabled(!isMyTurn)
+                })
+                //.disabled(!isMyTurn)
                 
                 Spacer()
                 
                 actionButton(title: "صن", action: {
                     print("صن clicked")
                     chooseRoundType("صن")
-                }).disabled(!isMyTurn)
+                })
+                //.disabled(!isMyTurn)
             }
             .padding()
             .background(SecondaryBackgroundGradient.backgroundGradient)
@@ -121,16 +123,35 @@ struct BottomButtonsView: View {
     }
 
     func chooseRoundType(_ type: String) {
-        guard let roomId = roomId, !roundTypeChosen else { return }
+        //guard let roomId = roomId, !roundTypeChosen else { return }
 
         roundTypeChosen = true
 
         let db = Firestore.firestore()
-        let roomRef = db.collection("rooms").document(roomId)
+        let roomRef = db.collection("rooms").document(roomId ?? "")
 
-        // Default to empty trumpSuit
+        // Get current user ID
+        guard let userId = userId else { return }
+
+        if type == "بس" {
+            // Mark that this user chose بس
+            roomRef.updateData([
+                "roundType": type,
+                "roundSelection.basCandidate": userId
+            ]) { error in
+                if let error = error {
+                    print("Error recording بس candidate: \(error)")
+                } else {
+                    print("\(userId) chose بس — deferring decision.")
+                }
+            }
+            return
+        }
+
+        // If another round type is chosen, remove any بس candidate
         var updates: [String: Any] = [
             "roundType": type,
+            "roundSelection.basCandidate": NSNull()
         ]
 
         if type == "حكم" {
@@ -146,19 +167,18 @@ struct BottomButtonsView: View {
                 if let suit = Suit.allCases.first(where: { firstCard.contains($0.rawValue) }) {
                     updates["trumpSuit"] = suit.rawValue
                 } else {
-                    updates["trumpSuit"] = "" // fallback in case suit isn't found
+                    updates["trumpSuit"] = ""
                 }
 
                 roomRef.updateData(updates) { error in
                     if let error = error {
-                        print("Error setting roundType with trumpSuit: \(error)")
+                        print("Error setting حكم roundType: \(error)")
                     } else {
-                        print("Round type '\(type)' set with trump suit \(updates["trumpSuit"] ?? "")")
+                        print("حكم selected with trump suit: \(updates["trumpSuit"] ?? "")")
                     }
                 }
             }
         } else {
-            // "صن" or other: no trump
             updates["trumpSuit"] = ""
 
             roomRef.updateData(updates) { error in
@@ -170,7 +190,6 @@ struct BottomButtonsView: View {
             }
         }
     }
-
 
     func advanceToNextSelector() {
         if roomId == nil {
