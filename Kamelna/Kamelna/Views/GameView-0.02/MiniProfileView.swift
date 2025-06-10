@@ -10,7 +10,7 @@ import SwiftUI
 struct MiniProfileView : View {
    
     @Binding var showMiniProfile : Bool
-    @ObservedObject var profileViewModel = ProfileViewModel()
+    @ObservedObject var profileViewModel = UserViewModel()
     var body: some View {
         VStack{
           Text("hello")

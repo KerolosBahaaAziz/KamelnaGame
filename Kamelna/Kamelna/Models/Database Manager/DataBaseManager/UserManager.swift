@@ -55,7 +55,7 @@ final class UserManager{
             friendList: friendList,
             sentFriendList: sentFriendList,
             recievedFriendList: recievedFriendList,
-            docId : document.documentID
+            id : document.documentID
         )
 
     }
@@ -113,7 +113,7 @@ final class UserManager{
     
     func userDocumentRef(for user: User) -> DocumentReference {
         
-        return db.collection(collection).document(user.docId ?? "")
+        return db.collection(collection).document(user.id ?? "")
     }
     // remeber to add type check in the function in the future
     func updateUserData(user: User, enumField: UserFireStoreAttributes,value: Any){

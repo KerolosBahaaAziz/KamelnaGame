@@ -5,7 +5,9 @@
 //  Created by Andrew Emad Morris on 12/05/2025.
 //
 
-struct User {
+struct User : Hashable,Identifiable{
+    
+    
     let firstName : String
     let lastName : String
     let email : String
@@ -23,7 +25,7 @@ struct User {
     var friendList = [String]()
     var sentFriendList = [String]()
     var recievedFriendList = [String]()
-    var docId : String?
+    let id : String?
 
 
 }

@@ -12,7 +12,7 @@ struct OtherPlayerView: View {
     let cardCount: Int
     
     @State var isLike = false
-    @ObservedObject var profileViewModel = ProfileViewModel()
+    @ObservedObject var profileViewModel = UserViewModel()
     let seatPosition: PlayerSeatPosition
 
     var body: some View {

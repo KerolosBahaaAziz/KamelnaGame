@@ -6,19 +6,62 @@
 //
 import Foundation
 import UIKit
-class ProfileViewModel : ObservableObject{
+class UserViewModel : ObservableObject{
     @Published var user : User?
+    @Published var friendList = [User]()
+    @Published var sentList = [User]()
+    @Published var recievedList = [User]()
    
     init(){
         setUser()
-            
+        
         
     }
     func setUser(){
         UserManager.shared.fetchUserByEmail(email: UserManager.shared.currentUserEmail ?? "") { user in
             self.user = user
+            self.setList()
         }
 
+    }
+    func setList(){
+        if let user = user {
+            user.friendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.friendList.append(user)
+                    }
+                }
+            }
+            user.sentFriendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.sentList.append(user)
+                    }
+                }
+            }
+            user.recievedFriendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.recievedList.append(user)
+                    }
+                }
+            }
+
+
+        }
+    }
+    func fetchUser(email: String ,completion: @escaping (User?) -> Void){
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            if let user = user{
+                completion(user)
+            }else{
+                completion(nil)
+            }
+           
+        }
+       
+        
     }
     func updateUser(enumField : UserFireStoreAttributes , value: Any){
         guard let user=user else {return}
