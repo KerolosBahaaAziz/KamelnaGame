@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BioCardView: View {
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     @Binding var showBioEditor: Bool
     @Binding var tempBioText: String
 

@@ -66,7 +66,7 @@ class GoogleAuthHandler {
                         let tempDate = formatter.string(from: Date())
                         let user = User(firstName: components[0],
                                         lastName: components[1],
-                                        email: email,creationDate: tempDate)
+                                        email: email,creationDate: tempDate,id:"")
                         DataBaseManager.shared.addUser(user: user)
                     }
                 }

@@ -10,12 +10,10 @@ import SwiftUI
 struct OtherPlayerView: View {
     let player: Player
     let cardCount: Int
-
+    
     @State var isLike = false
-    @ObservedObject var profileViewModel = ProfileViewModel()
-
+    @ObservedObject var profileViewModel = UserViewModel()
     let seatPosition: PlayerSeatPosition
-
 
     var body: some View {
         VStack(spacing: 6) {
@@ -50,17 +48,27 @@ struct OtherPlayerView: View {
             HStack {
                 Text(player.name ?? "الاسم غير معروف")
                     .font(.headline)
-                Button {
-                    isLike.toggle()
-                    profileViewModel.updateHearts(email: player.email ?? "",isLike: isLike ? 1:-1)
-                } label: {
-                    Image(systemName: "hand.thumbsup.fill").foregroundStyle(isLike ? .white:.black)
+//                Button {
+//                    isLike.toggle()
+//                    profileViewModel.updateHearts(email: player.email ?? "",isLike: isLike ? 1:-1)
+//                } label: {
+//                    Image(systemName: "hand.thumbsup.fill").foregroundStyle(isLike ? .white:.black)
+//                }
+                if !profileViewModel.isFriend(email: player.email ?? ""){
+                    Button {
+                      
+                        profileViewModel.updateSentAndRecieveFriendsList(email: player.email ?? "")
+                    } label: {
+                        Image(systemName: "plus").foregroundStyle(.black)
+                    }
                 }
+             
 
             }
 
             let playerTeam = player.team ?? 0
             let playerScore = player.score ?? 0
+           
 
             Text("فريق: \(playerTeam) | نقاط: \(playerScore)")
                 .font(.caption)
@@ -88,17 +96,3 @@ struct OtherPlayerView: View {
 
 
 
-#Preview {
-    OtherPlayerView(
-        player: Player(
-            id: "2",
-            name: "أحمد",
-            seat: 1,
-            hand: Array(repeating: "K", count: 9), // not used directly
-            team: 2,
-            score: 10,
-            isReady: true
-        ),
-        cardCount: 5, seatPosition: .top
-    )
-}

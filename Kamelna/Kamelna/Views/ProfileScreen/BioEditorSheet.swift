@@ -11,7 +11,7 @@ import SwiftUI
 struct BioEditorSheet: View {
     @Binding var tempBioText: String
     @Binding var showBioEditor: Bool
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     var body: some View {
         ZStack {
             BackgroundGradient.backgroundGradient

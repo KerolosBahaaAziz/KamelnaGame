@@ -15,7 +15,7 @@ struct CreateRoomView: View {
     
     let userId = UserDefaults.standard.string(forKey: "userId")
     private var createdRoomId = UserDefaults.standard.string(forKey: "roomId")
-    @ObservedObject var profileViewModel = ProfileViewModel()
+    @ObservedObject var profileViewModel = UserViewModel()
 
     var body: some View {
         ZStack {

@@ -19,7 +19,7 @@ struct HomeView: View {
     @State private var showGameView = false
     @State var createdRoomId: String?
     @State var showProfile = false
-    @State var profileViewModel = ProfileViewModel()
+    @State var profileViewModel = UserViewModel()
        
     var body: some View {
         NavigationStack {

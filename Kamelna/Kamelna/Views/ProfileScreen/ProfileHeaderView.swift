@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct ProfileHeaderView: View {
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedData: Data?
     

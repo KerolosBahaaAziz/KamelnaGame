@@ -6,19 +6,62 @@
 //
 import Foundation
 import UIKit
-class ProfileViewModel : ObservableObject{
+class UserViewModel : ObservableObject{
     @Published var user : User?
+    @Published var friendList = [User]()
+    @Published var sentList = [User]()
+    @Published var recievedList = [User]()
    
     init(){
         setUser()
-            
+        
         
     }
     func setUser(){
         UserManager.shared.fetchUserByEmail(email: UserManager.shared.currentUserEmail ?? "") { user in
             self.user = user
+            self.setList()
         }
 
+    }
+    func setList(){
+        if let user = user {
+            user.friendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.friendList.append(user)
+                    }
+                }
+            }
+            user.sentFriendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.sentList.append(user)
+                    }
+                }
+            }
+            user.recievedFriendList.forEach { friend in
+                fetchUser(email: friend){user in
+                    if let user = user{
+                        self.recievedList.append(user)
+                    }
+                }
+            }
+
+
+        }
+    }
+    func fetchUser(email: String ,completion: @escaping (User?) -> Void){
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            if let user = user{
+                completion(user)
+            }else{
+                completion(nil)
+            }
+           
+        }
+       
+        
     }
     func updateUser(enumField : UserFireStoreAttributes , value: Any){
         guard let user=user else {return}
@@ -49,6 +92,32 @@ class ProfileViewModel : ObservableObject{
            updateUser(enumField: .rank, value: newRank)
            updateUser(enumField: .rankPoints, value: rankPoints)
     }
+    
+    func updateFriendList(email : String){
+        guard let user = user else{return}
+        var friendList = user.friendList
+        friendList.append(email)
+        //print (friendList.first)
+        updateUser(enumField: .friendList, value: friendList)
+        
+    }
+    func updateSentAndRecieveFriendsList(email : String){
+        guard let user = user else{return}
+        var sentFriendList = user.sentFriendList
+        sentFriendList.append(email)
+       // print (sentFriendList.first)
+        updateUser(enumField: .sentFriendList, value: sentFriendList)
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print(email)
+                return}
+            var tempRecieveList = user.recievedFriendList
+            tempRecieveList.append(self.user?.email ?? "")
+            UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
+            
+        }
+    }
+   
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             guard let user = user else {
@@ -60,6 +129,7 @@ class ProfileViewModel : ObservableObject{
         }
     }
     
+
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {
         let rankCategory = RankCategory()
@@ -89,6 +159,18 @@ class ProfileViewModel : ObservableObject{
         // Calculate normalized percentage toward the next rank
         let progress = (currentPoints - currentThreshold) / range
         return min(max(progress, 0.0), 1.0) // Clamp between 0 and 1
+    }
+    func isFriend(email:String)->Bool{
+        if (user?.friendList.first(where: {$0 == email})) != nil{
+            return true
+        } else{
+            if (user?.sentFriendList.first(where: {$0 == email})) != nil{
+                return true
+            } else{
+                return false
+            }
+        }
+     
     }
 
         
