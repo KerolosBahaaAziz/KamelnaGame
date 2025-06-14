@@ -77,11 +77,17 @@ struct BottomButtonsView: View {
                 
                 Spacer()
                 
-                actionButton(title: "صن", action: {
+                /*actionButton(title: "صن", action: {
                     print("صن clicked")
                     chooseRoundType("صن")
                 })
                 //.disabled(!isMyTurn)
+                
+                Spacer()*/
+                
+                actionButton(title: "مشاريع", action: {
+                    print("مشاريع clicked")
+                })
             }
             .padding()
             .background(SecondaryBackgroundGradient.backgroundGradient)

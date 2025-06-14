@@ -827,9 +827,8 @@ class RoomManager : ObservableObject{
             let roundType = doc.data()?["roundType"] as? String ?? ""
             let isLastTrick = round >= 8
 
-            if isLastTrick {
+           // if isLastTrick {
                 // Apply صن / حكم scoring rules
-                teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
                 
                 // Identify the team that chose the round type
                 let selectorId = (doc.data()?["roundSelection"] as? [String: Any])?["currentSelector"] as? String
@@ -848,12 +847,15 @@ class RoomManager : ObservableObject{
                 } else if roundType == "حكم" {
                     if selectorTeam == losingTeam {
                         // Penalty: choosing team loses
-                        teamScores[losingTeam] = 0
-                        teamScores[winningTeam] = 16
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 16
+                        //teamScores[losingTeam] = 0
+                        //teamScores[winningTeam] = 16
                     } else {
                         // Normal scoring
-                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
-                        teamScores[losingTeam] = 16 - (teamScores[winningTeam] ?? 0)
+                        print("winner score")
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints/10)
+                       // teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (16 - (totalPoints/10))
                     }
                 }
 
@@ -896,12 +898,12 @@ class RoomManager : ObservableObject{
                 }
 
                 return
-            }
+            //}
 
             // For non-final tricks, just assign total points to winner
-            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
 
-            roomRef.updateData([
+            /*roomRef.updateData([
                 "turnPlayerId": players.first ?? "",
                 "currentTrick": ["cards": [:]],
                 "roundNumber": round + 1,
@@ -911,7 +913,7 @@ class RoomManager : ObservableObject{
                     print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
                     RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
                 }
-            }
+            }*/
         }
     }
 
