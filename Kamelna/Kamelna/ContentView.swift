@@ -77,7 +77,7 @@ struct ContentView: View {
         //                }
         //            }
 
-        RegisterView()
+        HomeView()
 
 //        RegisterView()
         //        CreateRoomView()

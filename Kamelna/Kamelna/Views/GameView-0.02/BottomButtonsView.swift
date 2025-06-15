@@ -87,6 +87,7 @@ struct BottomButtonsView: View {
                 
                 actionButton(title: "مشاريع", action: {
                     print("مشاريع clicked")
+                    addProjectToRoom(roomId: roomId ?? "", playerId: userId ?? "", team: "team1", projectType: .fourHundred)
                 })
             }
             .padding()
@@ -128,6 +129,79 @@ struct BottomButtonsView: View {
         }
     }
 
+    func canChooseProject(hand: [String], roundType: String, projectType: ProjectTypes) -> Bool {
+        let ranksOrder = ["7", "8", "9", "10", "J", "Q", "K", "A"]
+        
+        // Extract just the rank (e.g., from "A♠️" get "A")
+        let ranks = hand.map { card in
+            let components = card.components(separatedBy: CharacterSet(charactersIn: "♠️♥️♣️♦️"))
+            return components.first ?? ""
+        }
+        
+        let rankCounts = Dictionary(grouping: ranks, by: { $0 }).mapValues { $0.count }
+        
+        func hasConsecutive(_ count: Int) -> Bool {
+            let indices = ranks.compactMap { ranksOrder.firstIndex(of: $0) }.sorted()
+            guard indices.count >= count else { return false }
+            
+            for i in 0...(indices.count - count) {
+                var sequence = true
+                for j in 1..<count {
+                    if indices[i + j] != indices[i] + j {
+                        sequence = false
+                        break
+                    }
+                }
+                if sequence { return true }
+            }
+            return false
+        }
+        
+        func faceCardCount() -> Int {
+            return ranks.filter { ["J", "Q", "K"].contains($0) }.count
+        }
+        
+        switch projectType {
+        case .fourHundred:
+            return roundType == "صن" && rankCounts["A"] == 4
+        case .hundred:
+            return hasConsecutive(5) || faceCardCount() >= 4
+        case .fifty:
+            return hasConsecutive(4)
+        case .sra:
+            return hasConsecutive(3)
+        }
+    }
+    
+    func addProjectToRoom(
+            roomId: String,
+            playerId: String,
+            team: String,
+            projectType: ProjectTypes,
+            completion: ((Error?) -> Void)? = nil
+    ) {
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        let projectEntry: [String: Any] = [
+            "type": projectType.rawValue,
+            "playerId": playerId,
+            "team": team,
+            //"timestamp": FieldValue.serverTimestamp()
+        ]
+        
+        roomRef.updateData([
+            "projects": FieldValue.arrayUnion([projectEntry])
+        ]) { error in
+            if let error = error {
+                print("❌ Error adding project: \(error)")
+            } else {
+                print("✅ Project '\(projectType.rawValue)' added for player \(playerId), team \(team)")
+            }
+            completion?(error)
+        }
+    }
+    
     func chooseRoundType(_ type: String) {
         //guard let roomId = roomId, !roundTypeChosen else { return }
 
