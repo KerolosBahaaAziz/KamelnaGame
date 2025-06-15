@@ -12,8 +12,9 @@ struct RequestView : View{
     var body: some View{
         ZStack{
             BackgroundGradient.backgroundGradient.ignoresSafeArea()
-           
+            
             VStack{
+                Text("طلبات")
                 HStack {
                     if selectedTab == "طلبات الصداقه" {
                         ReceivedView(userViewModel: userViewModel)

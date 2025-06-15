@@ -57,7 +57,7 @@ struct OtherPlayerView: View {
                 if !profileViewModel.isFriend(email: player.email ?? ""){
                     Button {
                       
-                        profileViewModel.updateSentAndRecieveFriendsList(email: player.email ?? "")
+                        profileViewModel.sendFriendRequest(email: player.email ?? "")
                     } label: {
                         Image(systemName: "plus").foregroundStyle(.black)
                     }
