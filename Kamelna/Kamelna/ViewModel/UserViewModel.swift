@@ -11,46 +11,87 @@ class UserViewModel : ObservableObject{
     @Published var friendList = [User]()
     @Published var sentList = [User]()
     @Published var recievedList = [User]()
-   
+    @Published var isLoading = true
+    private var isFetching = false
     init(){
         setUser()
         
         
     }
-    func setUser(){
-        UserManager.shared.fetchUserByEmail(email: UserManager.shared.currentUserEmail ?? "") { user in
-            self.user = user
-            self.setList()
+    func setUser() {
+            guard !isFetching else {
+                print("Already fetching user, skipping...")
+                return
+            }
+            isFetching = true
+            isLoading = true
+            print("Fetching user for email: \(UserManager.shared.currentUserEmail ?? "unknown")")
+            UserManager.shared.fetchUserByEmail(email: UserManager.shared.currentUserEmail ?? "") { [weak self] user in
+                guard let self = self else { return }
+                self.user = user
+                print("Fetched user: \(user?.email ?? "nil") with friendList: \(user?.friendList ?? [])")
+                self.setList()
+                self.isFetching = false
+            }
         }
-
-    }
-    func setList(){
-        if let user = user {
-            user.friendList.forEach { friend in
-                fetchUser(email: friend){user in
-                    if let user = user{
-                        self.friendList.append(user)
+    func setList() {
+            guard let user = user else {
+                self.isLoading = false
+                return
+            }
+            
+            // Clear lists to prevent duplicates
+            friendList.removeAll()
+            sentList.removeAll()
+            recievedList.removeAll()
+            
+            // Fetch all users in parallel
+            let group = DispatchGroup()
+            
+            // Fetch friends
+            user.friendList.forEach { email in
+                group.enter()
+                fetchUser(email: email) { user in
+                    if let user = user {
+                        DispatchQueue.main.async {
+                            self.friendList.append(user)
+                        }
                     }
+                    group.leave()
                 }
             }
-            user.sentFriendList.forEach { friend in
-                fetchUser(email: friend){user in
-                    if let user = user{
-                        self.sentList.append(user)
+            
+            // Fetch sent requests
+            user.sentFriendList.forEach { email in
+                group.enter()
+                fetchUser(email: email) { user in
+                    if let user = user {
+                        DispatchQueue.main.async {
+                            self.sentList.append(user)
+                        }
                     }
+                    group.leave()
                 }
             }
-            user.recievedFriendList.forEach { friend in
-                fetchUser(email: friend){user in
-                    if let user = user{
-                        self.recievedList.append(user)
+            
+            // Fetch received requests
+            user.recievedFriendList.forEach { email in
+                group.enter()
+                fetchUser(email: email) { user in
+                    if let user = user {
+                        DispatchQueue.main.async {
+                            self.recievedList.append(user)
+                        }
                     }
+                    group.leave()
                 }
             }
-
-
+            
+            // Set isLoading to false when all fetches are complete
+            group.notify(queue: .main) {
+                self.isLoading = false
+            }
         }
-    }
     func fetchUser(email: String ,completion: @escaping (User?) -> Void){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             if let user = user{
@@ -93,30 +134,80 @@ class UserViewModel : ObservableObject{
            updateUser(enumField: .rankPoints, value: rankPoints)
     }
     
-    func updateFriendList(email : String){
-        guard let user = user else{return}
-        var friendList = user.friendList
-        friendList.append(email)
-        //print (friendList.first)
-        updateUser(enumField: .friendList, value: friendList)
-        
-    }
-    func updateSentAndRecieveFriendsList(email : String){
-        guard let user = user else{return}
-        var sentFriendList = user.sentFriendList
-        sentFriendList.append(email)
-       // print (sentFriendList.first)
-        updateUser(enumField: .sentFriendList, value: sentFriendList)
+    func acceptFriendRequest(email: String) {
+            guard let user = user else { return }
+            var tempFriendList = user.friendList
+            tempFriendList.append(email)
+            var tempRecieveList = user.recievedFriendList
+            tempRecieveList.removeAll(where: { $0 == email })
+            
+            // Update current user's data
+            updateUser(enumField: .friendList, value: tempFriendList)
+            updateUser(enumField: .recievedFriendList, value: tempRecieveList)
+            
+            // Update the other user's sentFriendList
+            UserManager.shared.fetchUserByEmail(email: email) { user in
+                guard let user = user else {
+                    print("Failed to fetch user with email: \(email)")
+                    return
+                }
+                var tempSentList = user.sentFriendList
+                tempSentList.removeAll(where: { $0 == UserManager.shared.currentUserEmail ?? "" })
+                UserManager.shared.updateUserData(user: user, enumField: .sentFriendList, value: tempSentList)
+                
+                // Add current user to the other user's friend list
+                var otherUserFriendList = user.friendList
+                otherUserFriendList.append(UserManager.shared.currentUserEmail ?? "")
+                UserManager.shared.updateUserData(user: user, enumField: .friendList, value: otherUserFriendList)
+            }
+        }
+    func cancelFriendRequest(email: String) {
+            guard let user = user else { return }
+            var tempRecieveList = user.recievedFriendList
+            tempRecieveList.removeAll(where: { $0 == email })
+            updateUser(enumField: .recievedFriendList, value: tempRecieveList)
+            
+            UserManager.shared.fetchUserByEmail(email: email) { user in
+                guard let user = user else {
+                    print("Failed to fetch user with email: \(email)")
+                    return
+                }
+                var tempSentList = user.sentFriendList
+                tempSentList.removeAll(where: { $0 == UserManager.shared.currentUserEmail ?? "" })
+                UserManager.shared.updateUserData(user: user, enumField: .sentFriendList, value: tempSentList)
+            }
+        }
+    func cancelSentRequest(email:String){
+        guard let user = user else {return}
+        var tempSentList = user.sentFriendList
+        tempSentList.removeAll(where: {$0 == email})
+        updateUser(enumField: .sentFriendList, value: tempSentList)
         UserManager.shared.fetchUserByEmail(email: email) { user in
             guard let user = user else {
-                print(email)
-                return}
-            var tempRecieveList = user.recievedFriendList
-            tempRecieveList.append(self.user?.email ?? "")
-            UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
-            
+                print("Failed to fetch user with email: \(email)")
+                return
+            }
+            var tempRecievedList = user.recievedFriendList
+            tempRecievedList.removeAll(where: { $0 == UserManager.shared.currentUserEmail ?? "" })
+            UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecievedList)
         }
     }
+    func sendFriendRequest(email: String) {
+            guard let user = user else { return }
+            var sentFriendList = user.sentFriendList
+            sentFriendList.append(email)
+            updateUser(enumField: .sentFriendList, value: sentFriendList)
+            
+            UserManager.shared.fetchUserByEmail(email: email) { user in
+                guard let user = user else {
+                    print("Failed to fetch user with email: \(email)")
+                    return
+                }
+                var tempRecieveList = user.recievedFriendList
+                tempRecieveList.append(UserManager.shared.currentUserEmail ?? "")
+                UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
+            }
+        }
    
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in

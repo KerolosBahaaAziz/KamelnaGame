@@ -10,9 +10,7 @@ struct FriendView: View {
         NavigationView{
             ZStack{
                 BackgroundGradient.backgroundGradient.ignoresSafeArea()
-                SecondaryBackgroundGradient.backgroundGradient
-                    .clipShape(RoundedRectangle(cornerRadius: 25))
-                    .frame(width: UIScreen.main.bounds.width - 50, height:  UIScreen.main.bounds.height - 200)
+              
                 VStack{
                     HStack{
                         Button {
@@ -26,7 +24,7 @@ struct FriendView: View {
 
                         Text("الاصدقاء")
                             .font(.title)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.black)
                             .padding(.leading,50)
                             .padding(.trailing, 50)
                         Button {
@@ -41,15 +39,64 @@ struct FriendView: View {
                             EmptyView()
                         }
                         
-                    }
-               
-                    if  !userViewModel.friendList.isEmpty {
-                        List {
-                            ForEach(userViewModel.friendList, id: \.id) { friend in
-                                Text("\(friend.firstName) \(friend.lastName)")
-                            }.listRowBackground(Color.clear)
-                        }.scrollContentBackground(.hidden)
-                    }
+                    }.padding(.bottom,20)
+                        .frame(alignment: .top)
+                
+                    ZStack{
+                    
+                        SecondaryBackgroundGradient.backgroundGradient
+                        if !userViewModel.isLoading{
+                            if  !userViewModel.friendList.isEmpty {
+                                List {
+                                    ForEach(userViewModel.friendList, id: \.id) { user in
+                                        
+                                        
+                                        HStack{
+                                            HStack{
+                                                Image(systemName: "star.circle.fill")
+                                                    .foregroundStyle(.white)
+                                                    .background(.cyan)
+                                                    .clipShape(Circle())
+                                                    .padding(.trailing,50)
+                                            
+                                                Text("\(user.rankPoints)")
+                                            }.padding(5)
+                                            .background(Color(#colorLiteral(red: 0.67680469, green: 0.5414626345, blue: 0.4466940624, alpha: 1)))
+                                            .clipShape(RoundedRectangle(cornerRadius: 25))
+                                           
+                                            Spacer()
+                                            HStack{
+                                                Text("\(user.firstName) \(user.lastName)")
+                                                    .font(.subheadline)
+                                                AsyncImageView(url: URL(string:user.profilePictureUrl ?? ""), placeHolder: "person.fill", errorImage: "photo.artframe.circle.fill")
+                                                    .padding(.leading,5)
+                                                
+
+                                                
+
+                                            }
+                                        }
+                                        
+                                    }.listRowBackground(Color.clear)
+                                }.scrollContentBackground(.hidden)
+                            }else{
+                                Text("لا يوجد لديك اصدقاء")
+                            }
+                        }else{
+                            VStack(spacing: 16) {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                        .scaleEffect(1.5)
+                                    Text("جارى التحميل ...")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                }
+                                
+                        }
+                       
+                        
+                    }.clipShape(RoundedRectangle(cornerRadius: 25))
+                        .frame(width: UIScreen.main.bounds.width - 50, height:  UIScreen.main.bounds.height - 200  )
                 }
                 
             }
