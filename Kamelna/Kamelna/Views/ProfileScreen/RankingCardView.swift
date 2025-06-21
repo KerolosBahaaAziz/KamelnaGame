@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RankingCardView: View {
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     @Binding var selectedRankingCardTab: String
     @Binding var selectedRankingArranging: String
     @State var rankCategory = RankCategory()

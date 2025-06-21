@@ -5,7 +5,9 @@
 //  Created by Andrew Emad Morris on 12/05/2025.
 //
 
-struct User {
+struct User : Hashable,Identifiable{
+    
+    
     let firstName : String
     let lastName : String
     let email : String
@@ -20,7 +22,11 @@ struct User {
     var rankPoints = 0
     var medal = 0
     var creationDate : String
-    var docId : String?
+    var friendList = [String]()
+    var sentFriendList = [String]()
+    var recievedFriendList = [String]()
+    let id : String?
+
 
 }
 enum UserFireStoreAttributes: String {
@@ -35,6 +41,9 @@ enum UserFireStoreAttributes: String {
     case rankPoints = "Rank_Points"
     case medal = "medal"
     case creationDate = "creationDate"
+    case friendList = "FriendList"
+    case sentFriendList = "SentFriendList"
+    case recievedFriendList = "RecievedFriendList"
 }
 
 struct RankCategory {

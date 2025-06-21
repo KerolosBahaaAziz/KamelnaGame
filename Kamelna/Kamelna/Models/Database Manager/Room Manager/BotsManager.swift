@@ -17,8 +17,8 @@ class BotsManager{
             
             roomRef.getDocument { snapshot, error in
                 guard let data = snapshot?.data(),
-                      var players = data["players"] as? [String: [String: Any]],
-                      var playerOrder = data["playerOrder"] as? [String] else {
+                      let players = data["players"] as? [String: [String: Any]],
+                      let playerOrder = data["playerOrder"] as? [String] else {
                     completion([:])
                     return
                 }

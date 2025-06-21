@@ -21,7 +21,7 @@ class EmailAuthHandler{
         let userAdded = User(firstName: firstName,
                              lastName: lastName,
                              email: email,
-                             creationDate: tempDate)
+                             creationDate: tempDate,id:"")
         // 1. Check if user already exists
         DataBaseManager.shared.userExists(with: email) { exists in
             if exists {

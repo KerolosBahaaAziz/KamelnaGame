@@ -9,7 +9,7 @@ import Foundation
 
 
 enum RoomStatus: String {
-    case waiting, playing, ended
+    case waiting,started, playing, ended
 }
 
 enum Suit: String, CaseIterable, Codable {

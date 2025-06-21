@@ -9,7 +9,7 @@ import SwiftUI
 
 struct JoinRoomByCode: View {
     @State private var enteredText: String = ""
-    @ObservedObject var profileViewModel = ProfileViewModel()
+    @ObservedObject var profileViewModel = UserViewModel()
     var body: some View {
         VStack(spacing: 20) {
             Text("Enter Something:")

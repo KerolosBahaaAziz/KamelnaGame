@@ -24,7 +24,7 @@ class RoomManager : ObservableObject{
         
         roomRef.getDocument { document, error in
             guard let document = document, document.exists,
-                  var roomData = document.data(),
+                  let roomData = document.data(),
                   var players = roomData["players"] as? [String: [String: Any]],
                   var playerData = players[playerId],
                   var hand = playerData["hand"] as? [String] else {
@@ -239,6 +239,7 @@ class RoomManager : ObservableObject{
             "currentTrick": [
                 "cards": [] // هيتضاف كل لاعب يلعب
             ],
+            "double": false,
             "trickWinner": NSNull(),
             "playerOrder": [currentUserId],
             "history": [:] // ممكن نحط كل تريك بعد ما يخلص هنا
@@ -564,6 +565,7 @@ class RoomManager : ObservableObject{
 
         // Clear the trick
         updates["currentTrick.cards"] = []
+        updates["status"] = RoomStatus.started  .rawValue
 
         roomRef.updateData(updates) { error in
             if let error = error {
@@ -811,10 +813,11 @@ class RoomManager : ObservableObject{
             
             roomRef.getDocument { document, error in
                 guard let doc = document, doc.exists,
-                      var playersData = doc.data()?["players"] as? [String: [String: Any]],
+                      let playersData = doc.data()?["players"] as? [String: [String: Any]],
                       let players = doc.data()?["playerOrder"] as? [String],
                       var teamScores = doc.data()?["teamScores"] as? [String: Int],
                       var roundScores = doc.data()?["roundScores"] as? [String: Int],
+                      var isDouble = doc.data()?["double"] as? Bool,
                       let round = doc.data()?["roundNumber"] as? Int else {
                     return
                 }
@@ -849,14 +852,14 @@ class RoomManager : ObservableObject{
                             // Penalty: choosing team loses
                             teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
                             teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
-                            roundScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
-                            roundScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
                         }else {
                             teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
                             //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
                             teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
-                            roundScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
-                            roundScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
                         }
                         
                     } else if roundType == "حكم" {
@@ -876,30 +879,35 @@ class RoomManager : ObservableObject{
                         }
                     }
                     
+                    if isDouble{
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) * 2
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) * 2
+                    }
+                    
                     self.calculateValidProjectPoints(forRoom: roomId) { points, teamstr in
                         projectPoints = points
                         teamProject = teamstr
                         
                         if teamProject == "team1"{
                             if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team2"] ?? 0 {
-                                teamScores[teamProject!] = (teamScores[teamProject ?? ""]) ?? 0 + projectPoints
+                                teamScores[teamProject!] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
                             } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team2"] ?? 0{
                                 if selectorTeam != teamProject{
-                                    teamScores[teamProject!] = (teamScores[teamProject!]) ?? 0 + projectPoints
+                                    teamScores[teamProject!] = (teamScores[teamProject!] ?? 0) + projectPoints
                                 }else {
-                                    teamScores["team2"] = (teamScores["team2"]) ?? 0 + projectPoints
+                                    teamScores["team2"] = (teamScores["team2"] ?? 0) + projectPoints
                                     print("projectPoints = \(projectPoints)")
                                 }
                             }
                             
                         } else if teamProject == "team2"{
                             if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team1"] ?? 0{
-                                teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""]) ?? 0 + projectPoints
+                                teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
                             } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team1"] ?? 0{
                                 if selectorTeam != teamProject{
-                                    teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""]) ?? 0 + projectPoints
+                                    teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
                                 }else {
-                                    teamScores["team1"] = (teamScores[teamProject ?? ""]) ?? 0 + projectPoints
+                                    teamScores["team1"] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
                                 }
                             }
                         }
@@ -962,8 +970,8 @@ class RoomManager : ObservableObject{
                         // Penalty: choosing team loses
                         teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
                         teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
-                        roundScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
-                        roundScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
+                        roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                        roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
                     } else {
                         // Normal scoring
                         teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
@@ -1019,7 +1027,8 @@ class RoomManager : ObservableObject{
                 }
                 
                 guard let roundType = data["roundType"] as? String,
-                      let projects = data["projects"] as? [[String: Any]] else {
+                      let projects = data["projects"] as? [[String: Any]],
+                      let isDouble = data["double"] as? Bool else {
                     completion(0, "")
                     return
                 }
@@ -1032,12 +1041,18 @@ class RoomManager : ObservableObject{
                           team == winningTeam,
                           let type = ProjectTypes(rawValue: typeStr) else { continue }
                     
-                    let points: Int
+                    var points: Int
                     switch type {
-                    case .fourHundred: points = 40
-                    case .hundred:     points = (roundType == "صن") ? 20 : 10
-                    case .fifty:       points = (roundType == "صن") ? 10 : 5
-                    case .sra:         points = (roundType == "صن") ? 4 : 2
+                    case .fourHundred:
+                        points = 40
+                    case .hundred:
+                        points = (roundType == "صن") ? 20 : 10
+                    case .fifty:
+                        points = (roundType == "صن") ? 10 : 5
+                        if isDouble {points = points * 2}
+                    case .sra:
+                        points = (roundType == "صن") ? 4 : 2
+                        if isDouble {points = points * 2}
                     }
                     
                     totalPoints += points
