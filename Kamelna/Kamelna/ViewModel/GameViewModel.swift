@@ -62,6 +62,10 @@ class GameViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self?.roomData = data
                     self?.checkTurn()
+                    
+                    if let status = data?["status"] as? String, status == RoomStatus.ended.rawValue {
+                        self?.handleRoomFinished()
+                    }
                 }
             }else {
                 print("no room wwith this id so can not to fetch room data")
@@ -119,6 +123,10 @@ class GameViewModel: ObservableObject {
         }
         
         return handStrings.compactMap { Card.from(string: $0) }
+    }
+    
+    func handleRoomFinished() {
+        print("🎉 Room status is finished — perform finalization logic here.")
     }
     
     func startListeningForRoomUpdates() {

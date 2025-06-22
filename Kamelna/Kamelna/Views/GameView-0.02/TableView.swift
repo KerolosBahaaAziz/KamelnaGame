@@ -21,7 +21,7 @@ struct TableView: View {
                 BackgroundGradient.backgroundGradient.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    TopButtonsView(usScore: 100, themScore: 100, roomNumber: roomId)
+                    TopButtonsView(roomNumber: roomId)
                         .frame(height: geo.size.height * 0.08)
                     Spacer()
                     // Top Player

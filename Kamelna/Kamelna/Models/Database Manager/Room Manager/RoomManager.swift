@@ -918,7 +918,7 @@ class RoomManager : ObservableObject{
 
                         if gameEnded {
                             roomRef.updateData([
-                                "status": "finished",
+                                "status": RoomStatus.ended.rawValue,
                                 "teamScores": teamScores,
                                 "projects":[],
                                 "roundScores": [
