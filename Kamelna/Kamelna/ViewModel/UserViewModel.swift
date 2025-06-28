@@ -92,6 +92,11 @@ class UserViewModel : ObservableObject{
                 self.isLoading = false
             }
         }
+    private func updateUser(enumField : UserFireStoreAttributes , value: Any){
+        guard let user=user else {return}
+        UserManager.shared.updateUserData(user: user, enumField: enumField, value: value)
+        setUser()
+    }
     func fetchUser(email: String ,completion: @escaping (User?) -> Void){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             if let user = user{
@@ -104,12 +109,23 @@ class UserViewModel : ObservableObject{
        
         
     }
-    func updateUser(enumField : UserFireStoreAttributes , value: Any){
-        guard let user=user else {return}
-        UserManager.shared.updateUserData(user: user, enumField: enumField, value: value)
-        setUser()
+  
+    func updateBreif(brief : String){
+        updateUser(enumField: .brief, value: brief)
     }
-    func genrerateUrlImage(image:UIImage){
+    func addCup(cupId: String){
+        guard let user = user else { return }
+        var tempCupIdList = user.cupIdList
+        tempCupIdList.append(cupId)
+        updateUser(enumField: .cupIdList, value: cupId )
+    }
+    func removeCup(cupId: String){
+        guard let user = user else { return }
+        var tempCupIdList = user.cupIdList
+        tempCupIdList.removeAll(where: { $0 == cupId })
+        updateUser(enumField: .cupIdList, value: cupId )
+    }
+    func updateImage(image:UIImage){
         UserManager.shared.generateUrlImage(image) { result in
             switch result {
                 case .success(let urlString):
@@ -119,6 +135,7 @@ class UserViewModel : ObservableObject{
                 }
         }
     }
+    
     func updateRank(earnedPoint: Int){
             guard var rankPoints=user?.rankPoints else{ return}
             rankPoints += earnedPoint
@@ -192,22 +209,26 @@ class UserViewModel : ObservableObject{
             UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecievedList)
         }
     }
-    func sendFriendRequest(email: String) {
-            guard let user = user else { return }
+    func sendFriendRequest(email: String) ->Bool {
+            guard let user = user else { return false}
             var sentFriendList = user.sentFriendList
-            sentFriendList.append(email)
-            updateUser(enumField: .sentFriendList, value: sentFriendList)
+            var userFound = false
             
-            UserManager.shared.fetchUserByEmail(email: email) { user in
+            
+            UserManager.shared.fetchUserByEmail(email: email) {[weak self] user in
                 guard let user = user else {
-                    print("Failed to fetch user with email: \(email)")
+                    print("user doesnt exsist")
                     return
                 }
+                userFound.toggle()
+                sentFriendList.append(email)
+                self?.updateUser(enumField: .sentFriendList, value: sentFriendList)
                 var tempRecieveList = user.recievedFriendList
                 tempRecieveList.append(UserManager.shared.currentUserEmail ?? "")
                 UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
             }
-        }
+        return userFound
+    }
    
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in
@@ -219,7 +240,21 @@ class UserViewModel : ObservableObject{
             
         }
     }
-    
+    func unFriendUser(email: String){
+        guard let user = user else {return}
+        var tempFriendList = user.friendList
+        tempFriendList.removeAll(where: {$0 == email})
+        updateUser(enumField: .friendList, value: tempFriendList)
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print("Failed to fetch user with email: \(email)")
+                return
+            }
+            var tempFriendList = user.friendList
+            tempFriendList.removeAll(where: { $0 == UserManager.shared.currentUserEmail ?? "" })
+            UserManager.shared.updateUserData(user: user, enumField: .friendList, value: tempFriendList)
+        }
+    }
 
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {

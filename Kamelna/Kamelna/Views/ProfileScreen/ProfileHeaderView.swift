@@ -88,7 +88,7 @@ struct ProfileHeaderView: View {
                         if let data = try? await newItem?.loadTransferable(type: Data.self) {
                             selectedData = data
                             if let uiImage = UIImage(data: data) {
-                                self.profileViewModel.genrerateUrlImage(image: uiImage)
+                                self.profileViewModel.updateImage(image: uiImage)
                             }
                         }
                     }
