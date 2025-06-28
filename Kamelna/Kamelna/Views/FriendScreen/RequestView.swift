@@ -19,16 +19,19 @@ struct RequestView : View{
                     Text("طلبات")
                         .font(.title)
                         .foregroundStyle(.black)
-                        .padding(.leading,100)
-                        .padding(.trailing, 50)
+                        .padding(.leading,120)
+                        
                     Button {
                         dismiss()
                     } label: {
                         Text("عوده")
+                            
                     }.padding(10)
                         .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                         .background(ButtonBackGroundColor.backgroundGradient)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.leading,70)
+                        
                     
 
                     
