@@ -92,6 +92,11 @@ class UserViewModel : ObservableObject{
                 self.isLoading = false
             }
         }
+    private func updateUser(enumField : UserFireStoreAttributes , value: Any){
+        guard let user=user else {return}
+        UserManager.shared.updateUserData(user: user, enumField: enumField, value: value)
+        setUser()
+    }
     func fetchUser(email: String ,completion: @escaping (User?) -> Void){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             if let user = user{
@@ -104,12 +109,23 @@ class UserViewModel : ObservableObject{
        
         
     }
-    func updateUser(enumField : UserFireStoreAttributes , value: Any){
-        guard let user=user else {return}
-        UserManager.shared.updateUserData(user: user, enumField: enumField, value: value)
-        setUser()
+  
+    func updateBreif(brief : String){
+        updateUser(enumField: .brief, value: brief)
     }
-    func genrerateUrlImage(image:UIImage){
+    func addCup(cupId: String){
+        guard let user = user else { return }
+        var tempCupIdList = user.cupIdList
+        tempCupIdList.append(cupId)
+        updateUser(enumField: .cupIdList, value: cupId )
+    }
+    func removeCup(cupId: String){
+        guard let user = user else { return }
+        var tempCupIdList = user.cupIdList
+        tempCupIdList.removeAll(where: { $0 == cupId })
+        updateUser(enumField: .cupIdList, value: cupId )
+    }
+    func updateImage(image:UIImage){
         UserManager.shared.generateUrlImage(image) { result in
             switch result {
                 case .success(let urlString):
@@ -119,6 +135,7 @@ class UserViewModel : ObservableObject{
                 }
         }
     }
+    
     func updateRank(earnedPoint: Int){
             guard var rankPoints=user?.rankPoints else{ return}
             rankPoints += earnedPoint

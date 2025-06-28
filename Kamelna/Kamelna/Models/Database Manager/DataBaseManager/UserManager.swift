@@ -39,7 +39,7 @@ final class UserManager{
         let friendList =  data["FriendList"] as? [String] ?? [String]()
         let sentFriendList =  data["SentFriendList"] as? [String] ?? [String]()
         let recievedFriendList =  data["RecievedFriendList"] as? [String] ?? [String]()
-        
+        let cupIdList = data["CupIdList"] as? [String] ?? [String]()
         return User(
             firstName: firstName,
             lastName: lastName,
@@ -55,6 +55,7 @@ final class UserManager{
             friendList: friendList,
             sentFriendList: sentFriendList,
             recievedFriendList: recievedFriendList,
+            cupIdList: cupIdList,
             id : document.documentID
         )
 
@@ -99,7 +100,8 @@ final class UserManager{
             "creationDate":user.creationDate,
             "FriendList":user.friendList,
             "SentFriendList":user.sentFriendList,
-            "RecievedFriendList":user.recievedFriendList]
+            "RecievedFriendList":user.recievedFriendList,
+            "cupIdList":user.cupIdList]
         
         db.collection(collection).addDocument(data: userData) { error in
             if let error = error {

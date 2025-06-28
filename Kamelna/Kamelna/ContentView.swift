@@ -97,7 +97,8 @@ struct ContentView: View {
      //ProfileView()
         //FriendView()
         //RequestView()
-        FriendTabView()
+        //FriendTabView()
+        MainCupView()
     }
 }
 
