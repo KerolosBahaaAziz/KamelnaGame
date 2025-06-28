@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct FriendView: View {
-    @StateObject var userViewModel = UserViewModel()
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var userViewModel : UserViewModel
     @State var showRequest = false
    
     
@@ -28,7 +29,7 @@ struct FriendView: View {
                             .padding(.leading,50)
                             .padding(.trailing, 50)
                         Button {
-                            
+                            dismiss()
                         } label: {
                             Text("عوده")
                         }.padding(10)
@@ -50,32 +51,7 @@ struct FriendView: View {
                                 List {
                                     ForEach(userViewModel.friendList, id: \.id) { user in
                                         
-                                        
-                                        HStack{
-                                            HStack{
-                                                Image(systemName: "star.circle.fill")
-                                                    .foregroundStyle(.white)
-                                                    .background(.cyan)
-                                                    .clipShape(Circle())
-                                                    .padding(.trailing,50)
-                                            
-                                                Text("\(user.rankPoints)")
-                                            }.padding(5)
-                                            .background(Color(#colorLiteral(red: 0.67680469, green: 0.5414626345, blue: 0.4466940624, alpha: 1)))
-                                            .clipShape(RoundedRectangle(cornerRadius: 25))
-                                           
-                                            Spacer()
-                                            HStack{
-                                                Text("\(user.firstName) \(user.lastName)")
-                                                    .font(.subheadline)
-                                                AsyncImageView(url: URL(string:user.profilePictureUrl ?? ""), placeHolder: "person.fill", errorImage: "photo.artframe.circle.fill")
-                                                    .padding(.leading,5)
-                                                
-
-                                                
-
-                                            }
-                                        }
+                                        FriendRowBasic(userViewModel: userViewModel, user: user)
                                         
                                     }.listRowBackground(Color.clear)
                                 }.scrollContentBackground(.hidden)
@@ -100,6 +76,7 @@ struct FriendView: View {
                 }
                 
             }
+           
         }
            
         
