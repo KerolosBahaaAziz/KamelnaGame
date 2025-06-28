@@ -8,13 +8,31 @@ import SwiftUI
 struct RequestView : View{
     @State private var selectedTab: String = "طلبات الصداقه"
     @ObservedObject var userViewModel : UserViewModel
+    @Environment(\.dismiss) var dismiss
     let tabs = ["طلبات الصداقه","طلباتى"]
     var body: some View{
         ZStack{
             BackgroundGradient.backgroundGradient.ignoresSafeArea()
             
             VStack{
-                Text("طلبات")
+                HStack{
+                    Text("طلبات")
+                        .font(.title)
+                        .foregroundStyle(.black)
+                        .padding(.leading,100)
+                        .padding(.trailing, 50)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("عوده")
+                    }.padding(10)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    
+
+                    
+                }
                 HStack {
                     if selectedTab == "طلبات الصداقه" {
                         ReceivedView(userViewModel: userViewModel)
@@ -44,7 +62,7 @@ struct RequestView : View{
                 .cornerRadius(20)
                 
             }
-           
+            .navigationBarBackButtonHidden(true)
         }
     }
 }

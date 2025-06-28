@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showGameView = false
     @State var createdRoomId: String?
     @State var showProfile = false
+    @State var showFriends = false
     @State var profileViewModel = UserViewModel()
        
     var body: some View {
@@ -28,6 +29,7 @@ struct HomeView: View {
                 HStack {
                     Button {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        showFriends.toggle()
                     } label: {
                         Image(systemName: "bell.fill")
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
@@ -46,6 +48,9 @@ struct HomeView: View {
                             .font(.title2)
                     }
                     NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                        EmptyView()
+                    }
+                    NavigationLink(destination: FriendTabView(), isActive: $showFriends) {
                         EmptyView()
                     }
                 }
@@ -204,6 +209,7 @@ struct HomeView: View {
                 RewardedAdManager.shared.loadAd()
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 
     func playBlot() {

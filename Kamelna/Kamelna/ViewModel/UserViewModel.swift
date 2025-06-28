@@ -219,7 +219,21 @@ class UserViewModel : ObservableObject{
             
         }
     }
-    
+    func unFriendUser(email: String){
+        guard let user = user else {return}
+        var tempFriendList = user.friendList
+        tempFriendList.removeAll(where: {$0 == email})
+        updateUser(enumField: .friendList, value: tempFriendList)
+        UserManager.shared.fetchUserByEmail(email: email) { user in
+            guard let user = user else {
+                print("Failed to fetch user with email: \(email)")
+                return
+            }
+            var tempFriendList = user.friendList
+            tempFriendList.removeAll(where: { $0 == UserManager.shared.currentUserEmail ?? "" })
+            UserManager.shared.updateUserData(user: user, enumField: .friendList, value: tempFriendList)
+        }
+    }
 
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {

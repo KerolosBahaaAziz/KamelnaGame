@@ -92,11 +92,12 @@ struct ContentView: View {
        // HomeView()
        // JoinRoomByCode()
 //      ProfileView()
-    HomeView()
+    //HomeView()
 //        JoinRoomByCode()
      //ProfileView()
         //FriendView()
         //RequestView()
+        FriendTabView()
     }
 }
 
