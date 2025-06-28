@@ -13,35 +13,7 @@ struct FriendView: View {
                 BackgroundGradient.backgroundGradient.ignoresSafeArea()
               
                 VStack{
-                    HStack{
-                        Button {
-                            showRequest.toggle()
-                        } label: {
-                            Text("طلبات")
-                        }.padding(10)
-                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                            .background(ButtonBackGroundColor.backgroundGradient)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                        Text("الاصدقاء")
-                            .font(.title)
-                            .foregroundStyle(.black)
-                            .padding(.leading,50)
-                            .padding(.trailing, 50)
-                        Button {
-                            dismiss()
-                        } label: {
-                            Text("عوده")
-                        }.padding(10)
-                            .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                            .background(ButtonBackGroundColor.backgroundGradient)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        NavigationLink(destination: RequestView(userViewModel: userViewModel), isActive: $showRequest) {
-                            EmptyView()
-                        }
-                        
-                    }.padding(.bottom,20)
-                        .frame(alignment: .top)
                 
                     ZStack{
                     
@@ -72,7 +44,7 @@ struct FriendView: View {
                        
                         
                     }.clipShape(RoundedRectangle(cornerRadius: 25))
-                        .frame(width: UIScreen.main.bounds.width - 50, height:  UIScreen.main.bounds.height - 200  )
+                        .frame(width: UIScreen.main.bounds.width - 50, height:  UIScreen.main.bounds.height - 220  )
                 }
                 
             }

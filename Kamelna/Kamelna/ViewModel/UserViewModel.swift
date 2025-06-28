@@ -209,22 +209,26 @@ class UserViewModel : ObservableObject{
             UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecievedList)
         }
     }
-    func sendFriendRequest(email: String) {
-            guard let user = user else { return }
+    func sendFriendRequest(email: String) ->Bool {
+            guard let user = user else { return false}
             var sentFriendList = user.sentFriendList
-            sentFriendList.append(email)
-            updateUser(enumField: .sentFriendList, value: sentFriendList)
+            var userFound = false
             
-            UserManager.shared.fetchUserByEmail(email: email) { user in
+            
+            UserManager.shared.fetchUserByEmail(email: email) {[weak self] user in
                 guard let user = user else {
-                    print("Failed to fetch user with email: \(email)")
+                    print("user doesnt exsist")
                     return
                 }
+                userFound.toggle()
+                sentFriendList.append(email)
+                self?.updateUser(enumField: .sentFriendList, value: sentFriendList)
                 var tempRecieveList = user.recievedFriendList
                 tempRecieveList.append(UserManager.shared.currentUserEmail ?? "")
                 UserManager.shared.updateUserData(user: user, enumField: .recievedFriendList, value: tempRecieveList)
             }
-        }
+        return userFound
+    }
    
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in

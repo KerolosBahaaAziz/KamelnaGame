@@ -15,57 +15,62 @@ struct FriendTabView : View{
         NavigationView{
         ZStack{
             BackgroundGradient.backgroundGradient.ignoresSafeArea()
-            HStack{
-                Button {
-                    showRequest.toggle()
-                } label: {
-                    Text("طلبات")
-                }.padding(10)
-                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    .background(ButtonBackGroundColor.backgroundGradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            VStack{
+                HStack{
+                    Button {
+                        showRequest.toggle()
+                    } label: {
+                        Text("طلبات")
+                    }.padding(10)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                Text("الاصدقاء")
-                    .font(.title)
-                    .foregroundStyle(.black)
-                    .padding(.leading,50)
-                    .padding(.trailing, 50)
-                Button {
-                    dismiss()
-                } label: {
-                    Text("عوده")
-                }.padding(10)
-                    .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
-                    .background(ButtonBackGroundColor.backgroundGradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                NavigationLink(destination: RequestView(userViewModel: userViewModel), isActive: $showRequest) {
-                    EmptyView()
-                }
-                
-            }.padding(.bottom,20)
-                .frame(alignment: .top)
-            
-                
+                    Text("الاصدقاء")
+                        .font(.title)
+                        .foregroundStyle(.black)
+                        .padding(.leading,50)
+                        .padding(.trailing, 50)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("عوده")
+                    }.padding(10)
+                        .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
+                        .background(ButtonBackGroundColor.backgroundGradient)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    NavigationLink(destination: RequestView(userViewModel: userViewModel), isActive: $showRequest) {
+                        EmptyView()
+                    }
+                    
+                }.padding(.bottom,20)
+                    .frame(alignment: .top)
                 TabView {
                     FriendView(userViewModel: userViewModel)
                         .tabItem {
-                            Label("Friends", systemImage: "person.3")
+                            Label("اصدقاء", systemImage: "person.3")
                         }
 
                     FriendRankView(userViewModel: userViewModel)
                         .tabItem {
-                            Label("Ranking", systemImage: "star.circle")
+                            Label("المتصدرون", systemImage: "star.circle")
                         }
 
-                    EmptyView()
+                    FriendAddView(userViewModel: userViewModel)
                         .tabItem {
-                            Label("Account", systemImage: "person.badge.plus")
+                            Label("اضافات", systemImage: "person.badge.plus")
                         }
                 }
+                .tint(SelectedButtonBackGroundColor.backgroundGradient)
+                .onAppear {
+                    UITabBar.appearance().unselectedItemTintColor = UIColor(red: 62/255, green: 31/255, blue: 12/255, alpha: 1)
+                }
+            }
+                
             }
         }
         
-       
+        .ignoresSafeArea(.keyboard)
     }
     
 }
