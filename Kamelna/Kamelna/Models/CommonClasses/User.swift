@@ -25,7 +25,9 @@ struct User : Hashable,Identifiable{
     var friendList = [String]()
     var sentFriendList = [String]()
     var recievedFriendList = [String]()
+    var cupIdList = [String]()
     let id : String?
+   
 
 
 }
@@ -44,6 +46,7 @@ enum UserFireStoreAttributes: String {
     case friendList = "FriendList"
     case sentFriendList = "SentFriendList"
     case recievedFriendList = "RecievedFriendList"
+    case cupIdList = "CupIdList"
 }
 
 struct RankCategory {
