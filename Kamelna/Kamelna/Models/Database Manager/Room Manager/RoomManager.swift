@@ -12,6 +12,7 @@ class RoomManager : ObservableObject{
     static let shared = RoomManager()
     @Published var listener: ListenerRegistration?
     @Published var messages: [Message] = []
+    var userViewModel = UserViewModel()
     private var playerId = UserDefaults.standard.string(forKey: "userId")
     var someoneChoseInCycleOne = false
     var currentAttempt = 1
@@ -218,7 +219,7 @@ class RoomManager : ObservableObject{
                 "basCandidate": ""
             ],
             "teamScores": [
-                "team1": 0, // فريق 1 يبدأ من صفر
+                "team1": 101, // فريق 1 يبدأ من صفر
                 "team2": 0  // فريق 2 يبدأ من صفر
             ],
             "roundScores": [
@@ -239,7 +240,22 @@ class RoomManager : ObservableObject{
             "currentTrick": [
                 "cards": [] // هيتضاف كل لاعب يلعب
             ],
-            "double": false,
+            "double": [
+                "isActive": false,
+                "choicedBy": ""
+            ],
+            "three": [
+                "isActive": false,
+                "choicedBy": ""
+            ],
+            "four": [
+                "isActive": false,
+                "choicedBy": ""
+            ],
+            "coffee": [
+                "isActive": false,
+                "choicedBy": ""
+            ],
             "trickWinner": NSNull(),
             "playerOrder": [currentUserId],
             "history": [:] // ممكن نحط كل تريك بعد ما يخلص هنا
@@ -803,168 +819,51 @@ class RoomManager : ObservableObject{
     
     // دالة لتحديث النقاط بعد انتهاء الجولة
     func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit?) {
-            let db = Firestore.firestore()
-            let roomRef = db.collection("rooms").document(roomId)
-            
-            guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
-                print("Could not determine trick winner.")
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
+            print("Could not determine trick winner.")
+            return
+        }
+        
+        roomRef.getDocument { document, error in
+            guard let doc = document, doc.exists,
+                  let playersData = doc.data()?["players"] as? [String: [String: Any]],
+                  let players = doc.data()?["playerOrder"] as? [String],
+                  var teamScores = doc.data()?["teamScores"] as? [String: Int],
+                  var roundScores = doc.data()?["roundScores"] as? [String: Int],
+                  var isDouble = doc.data()?["double"] as? [String: Any],
+                  let round = doc.data()?["roundNumber"] as? Int else {
+                print("no room available")
                 return
             }
             
-            roomRef.getDocument { document, error in
-                guard let doc = document, doc.exists,
-                      let playersData = doc.data()?["players"] as? [String: [String: Any]],
-                      let players = doc.data()?["playerOrder"] as? [String],
-                      var teamScores = doc.data()?["teamScores"] as? [String: Int],
-                      var roundScores = doc.data()?["roundScores"] as? [String: Int],
-                      var isDouble = doc.data()?["double"] as? Bool,
-                      let round = doc.data()?["roundNumber"] as? Int else {
-                    return
-                }
-
-                let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
-                let losingTeam = (winningTeam == "team1") ? "team2" : "team1"
-                let isTrumpGame = (trumpSuit != nil)
-
-                // Total trick points
-                var totalPoints = 0
-                for (_, card) in cardsInTrick {
-                    totalPoints += self.getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
-                }
-
-                let roundType = doc.data()?["roundType"] as? String ?? ""
-                let isLastTrick = round >= 8
-
-                
-                // Identify the team that chose the round type
-                let selectorId = (doc.data()?["roundSelection"] as? [String: Any])?["currentSelector"] as? String
-                let selectorTeam = self.getWinningTeam(playerId: selectorId ?? "", playersData: playersData)
-                
-                if isLastTrick {
-                    // Apply صن / حكم scoring rules
-                    //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
-                    var projectPoints: Int = 0
-                    var teamProject: String?
-                   
-                    
-                    if roundType == "صن" {
-                        if selectorTeam == losingTeam {
-                            // Penalty: choosing team loses
-                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
-                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
-                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
-                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
-                        }else {
-                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
-                            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
-                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
-                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
-                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
-                        }
-                        
-                    } else if roundType == "حكم" {
-                        if selectorTeam == losingTeam {
-                            // Penalty: choosing team loses
-                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
-                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 16
-                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
-                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 16
-                        } else {
-                            // Normal scoring
-                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 10)
-                            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
-                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
-                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 10)
-                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
-                        }
-                    }
-                    
-                    if isDouble{
-                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) * 2
-                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) * 2
-                    }
-                    
-                    self.calculateValidProjectPoints(forRoom: roomId) { points, teamstr in
-                        projectPoints = points
-                        teamProject = teamstr
-                        
-                        if teamProject == "team1"{
-                            if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team2"] ?? 0 {
-                                teamScores[teamProject!] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
-                            } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team2"] ?? 0{
-                                if selectorTeam != teamProject{
-                                    teamScores[teamProject!] = (teamScores[teamProject!] ?? 0) + projectPoints
-                                }else {
-                                    teamScores["team2"] = (teamScores["team2"] ?? 0) + projectPoints
-                                    print("projectPoints = \(projectPoints)")
-                                }
-                            }
-                            
-                        } else if teamProject == "team2"{
-                            if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team1"] ?? 0{
-                                teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
-                            } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team1"] ?? 0{
-                                if selectorTeam != teamProject{
-                                    teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
-                                }else {
-                                    teamScores["team1"] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
-                                }
-                            }
-                        }
-                        print("Game Ended. '\(winningTeam)' +\(teamScores[winningTeam] ?? 0), '\(losingTeam)' +\(teamScores[losingTeam] ?? 0)")
-
-                        // Check if any team has won the game
-                        let gameEnded = teamScores.values.contains(where: { $0 >= 152 })
-
-                        if gameEnded {
-                            roomRef.updateData([
-                                "status": RoomStatus.ended.rawValue,
-                                "teamScores": teamScores,
-                                "projects":[],
-                                "roundScores": [
-                                    "team1": 0,
-                                    "team2": 0
-                                ],
-                                "winningTeam": teamScores.first(where: { $0.value >= 152 })?.key ?? ""
-                            ]) { error in
-                                if error == nil {
-                                    print("Game finished. Final scores: \(teamScores)")
-                                }
-                            }
-                        } else {
-                            self.rotatePlayersOrder(roomId: roomId) {
-                                let playersNewOrder = doc.data()?["playerOrder"] as? [String]
-                                roomRef.updateData([
-                                    "turnPlayerId": playersNewOrder?.first ?? "",
-                                    "currentTrick": ["cards": [:]],
-                                    "roundNumber": 1,
-                                    "roundType": "",
-                                    "trumpSuit": NSNull(),
-                                    "teamScores": teamScores,
-                                    "projects":[],
-                                    "roundScores": [
-                                        "team1": 0,
-                                        "team2": 0
-                                    ]
-                                ]) { error in
-                                    if error == nil {
-                                        print("Starting new game. Winner: \(winnerPlayerId)")
-                                        RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
-                                    }
-                                }
-
-                                self.distributeCardsToPlayers(roomId: roomId, players: playersData) { success in
-                                    print(success ? "New game started successfully" : "Failed to start new game")
-                                }
-                            }
-                        }
-                    }
-                    
-                    return
-                }
-
-                // For non-final tricks, just assign total points to winner
+            let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
+            let losingTeam = (winningTeam == "team1") ? "team2" : "team1"
+            let isTrumpGame = (trumpSuit != nil)
+            
+            // Total trick points
+            var totalPoints = 0
+            for (_, card) in cardsInTrick {
+                totalPoints += self.getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
+            }
+            
+            let roundType = doc.data()?["roundType"] as? String ?? ""
+            let isLastTrick = round >= 8
+            
+            
+            // Identify the team that chose the round type
+            let selectorId = (doc.data()?["roundSelection"] as? [String: Any])?["currentSelector"] as? String
+            let selectorTeam = self.getWinningTeam(playerId: selectorId ?? "", playersData: playersData)
+            
+            if isLastTrick {
+                // Apply صن / حكم scoring rules
                 //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+                var projectPoints: Int = 0
+                var teamProject: String?
+                
+                
                 if roundType == "صن" {
                     if selectorTeam == losingTeam {
                         // Penalty: choosing team loses
@@ -972,13 +871,14 @@ class RoomManager : ObservableObject{
                         teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
                         roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
                         roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
-                    } else {
-                        // Normal scoring
+                    }else {
                         teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
+                        //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
                         teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
                         roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
                         roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
                     }
+                    
                 } else if roundType == "حكم" {
                     if selectorTeam == losingTeam {
                         // Penalty: choosing team loses
@@ -995,20 +895,144 @@ class RoomManager : ObservableObject{
                         roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
                     }
                 }
-                roomRef.updateData([
-                    "turnPlayerId": players.first ?? "",
-                    "currentTrick": ["cards": [:]],
-                    "roundNumber": round + 1,
-                    "teamScores": teamScores,
-                    "roundScores": roundScores
-                ]) { error in
-                    if error == nil {
-                        print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
-                        RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                
+                if (isDouble["isActive"] != nil){
+                    teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) * 2
+                    teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) * 2
+                }
+                
+                self.calculateValidProjectPoints(forRoom: roomId) { points, teamstr in
+                    projectPoints = points
+                    teamProject = teamstr
+                    
+                    if teamProject == "team1"{
+                        if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team2"] ?? 0 {
+                            teamScores[teamProject!] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                        } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team2"] ?? 0{
+                            if selectorTeam != teamProject{
+                                teamScores[teamProject!] = (teamScores[teamProject!] ?? 0) + projectPoints
+                            }else {
+                                teamScores["team2"] = (teamScores["team2"] ?? 0) + projectPoints
+                                print("projectPoints = \(projectPoints)")
+                            }
+                        }
+                        
+                    } else if teamProject == "team2"{
+                        if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team1"] ?? 0{
+                            teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                        } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team1"] ?? 0{
+                            if selectorTeam != teamProject{
+                                teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                            }else {
+                                teamScores["team1"] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                            }
+                        }
                     }
+                    print("Game Ended. '\(winningTeam)' +\(teamScores[winningTeam] ?? 0), '\(losingTeam)' +\(teamScores[losingTeam] ?? 0)")
+                    
+                    // Check if any team has won the game
+                    let gameEnded = teamScores.values.contains(where: { $0 >= 1520 })
+                    
+                    if gameEnded {
+                        self.updateUserPoints()
+                        roomRef.updateData([
+                            "status": RoomStatus.ended.rawValue,
+                            "teamScores": teamScores,
+                            "projects":[],
+                            "roundScores": [
+                                "team1": 0,
+                                "team2": 0
+                            ],
+                            "winningTeam": teamScores.first(where: { $0.value >= 152 })?.key ?? ""
+                        ]) { error in
+                            if error == nil {
+                                print("Game finished. Final scores: \(teamScores)")
+                            }
+                        }
+                    } else {
+                        self.rotatePlayersOrder(roomId: roomId) {
+                            let playersNewOrder = doc.data()?["playerOrder"] as? [String]
+                            roomRef.updateData([
+                                "turnPlayerId": playersNewOrder?.first ?? "",
+                                "currentTrick": ["cards": [:]],
+                                "roundNumber": 1,
+                                "roundType": "",
+                                "trumpSuit": NSNull(),
+                                "status": RoomStatus.waiting.rawValue,
+                                "teamScores": teamScores,
+                                "projects":[],
+                                "roundScores": [
+                                    "team1": 0,
+                                    "team2": 0
+                                ]
+                            ]) { error in
+                                if error == nil {
+                                    print("Starting new game. Winner: \(winnerPlayerId)")
+                                    RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                                }
+                            }
+                            
+                            self.distributeCardsToPlayers(roomId: roomId, players: playersData) { success in
+                                print(success ? "New game started successfully" : "Failed to start new game")
+                            }
+                        }
+                    }
+                }
+                
+                return
+            }
+            
+            // For non-final tricks, just assign total points to winner
+            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+            if roundType == "صن" {
+                if selectorTeam == losingTeam {
+                    // Penalty: choosing team loses
+                    teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                    teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
+                    roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                    roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
+                } else {
+                    // Normal scoring
+                    teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
+                    teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                    roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
+                    roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                }
+            } else if roundType == "حكم" {
+                if selectorTeam == losingTeam {
+                    // Penalty: choosing team loses
+                    teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                    teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 16
+                    roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                    roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 16
+                } else {
+                    // Normal scoring
+                    teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 10)
+                    //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
+                    teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                    roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 10)
+                    roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                }
+            }
+            roomRef.updateData([
+                "turnPlayerId": players.first ?? "",
+                "currentTrick": ["cards": [:]],
+                "roundNumber": round + 1,
+                "teamScores": teamScores,
+                "roundScores": roundScores,
+                "status": RoomStatus.playing.rawValue
+            ]) { error in
+                if error == nil {
+                    print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
+                    RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
                 }
             }
         }
+    }
+
+    func updateUserPoints(){
+        userViewModel.updateRank(earnedPoint: 152)
+    }
 
     func calculateValidProjectPoints(forRoom roomId: String, completion: @escaping (Int, String) -> Void) {
         determineProjectWinnerTeam(roomId: roomId) { winningTeam in

@@ -18,7 +18,7 @@ struct BottomButtonsView: View {
                 RoundTypeButtonsView(userName: "kero", status: "new")
             } else if viewModel.gameStatus == RoomStatus.started.rawValue {
                 //ProjectsButtonsView()
-                PointChoicesButtonsView()
+                hokmPointsButtonsView()
             } else {
                 Text("Unknown status: \(viewModel.gameStatus)")
             }

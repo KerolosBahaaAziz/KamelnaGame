@@ -5,7 +5,7 @@
 //  Created by Kerlos on 21/06/2025.
 //
 
-import SwiftUI
+/*import SwiftUI
 
 struct PointChoicesButtonsView: View {
     @StateObject private var viewModel = PointsChoicesViewModel.shared
@@ -53,3 +53,4 @@ struct PointChoicesButtonsView: View {
 #Preview {
     PointChoicesButtonsView()
 }
+*/
