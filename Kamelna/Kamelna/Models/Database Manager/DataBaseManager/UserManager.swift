@@ -4,6 +4,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import Cloudinary
+
 final class UserManager{
     let currentUserEmail = Auth.auth().currentUser?.email
     let creationDate = Auth.auth().currentUser?.metadata.creationDate
@@ -35,6 +36,10 @@ final class UserManager{
         let rankPoints = data["Rank_Points"] as? Int ?? 0
         let medal = data["medal"] as? Int ?? 0
         let creationDate = data["creationDate"] as? String ?? ""
+        let friendList =  data["FriendList"] as? [String] ?? [String]()
+        let sentFriendList =  data["SentFriendList"] as? [String] ?? [String]()
+        let recievedFriendList =  data["RecievedFriendList"] as? [String] ?? [String]()
+        let cupIdList = data["CupIdList"] as? [String] ?? [String]()
         return User(
             firstName: firstName,
             lastName: lastName,
@@ -44,7 +49,16 @@ final class UserManager{
             brief: brief,
             hearts: hearts,
             rank: rank,
-            rankPoints: rankPoints,medal: medal,creationDate: creationDate , docId : document.documentID)
+            rankPoints: rankPoints,
+            medal: medal,
+            creationDate: creationDate,
+            friendList: friendList,
+            sentFriendList: sentFriendList,
+            recievedFriendList: recievedFriendList,
+            cupIdList: cupIdList,
+            id : document.documentID
+        )
+
     }
     
     func fetchUserByEmail(email: String, completion: @escaping (User?) -> Void) {
@@ -83,7 +97,11 @@ final class UserManager{
             "Rank": user.rank,
             "Rank_Points": user.rankPoints ,
             "medal":user.medal,
-            "creationDate":user.creationDate]
+            "creationDate":user.creationDate,
+            "FriendList":user.friendList,
+            "SentFriendList":user.sentFriendList,
+            "RecievedFriendList":user.recievedFriendList,
+            "cupIdList":user.cupIdList]
         
         db.collection(collection).addDocument(data: userData) { error in
             if let error = error {
@@ -97,7 +115,7 @@ final class UserManager{
     
     func userDocumentRef(for user: User) -> DocumentReference {
         
-        return db.collection(collection).document(user.docId ?? "")
+        return db.collection(collection).document(user.id ?? "")
     }
     // remeber to add type check in the function in the future
     func updateUserData(user: User, enumField: UserFireStoreAttributes,value: Any){

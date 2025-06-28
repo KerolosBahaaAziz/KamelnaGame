@@ -19,7 +19,8 @@ struct HomeView: View {
     @State private var showGameView = false
     @State var createdRoomId: String?
     @State var showProfile = false
-    @State var profileViewModel = ProfileViewModel()
+    @State var showFriends = false
+    @State var profileViewModel = UserViewModel()
        
     var body: some View {
         NavigationStack {
@@ -28,6 +29,7 @@ struct HomeView: View {
                 HStack {
                     Button {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
+                        showFriends.toggle()
                     } label: {
                         Image(systemName: "bell.fill")
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
@@ -46,6 +48,9 @@ struct HomeView: View {
                             .font(.title2)
                     }
                     NavigationLink(destination: ProfileView(), isActive: $showProfile) {
+                        EmptyView()
+                    }
+                    NavigationLink(destination: FriendTabView(), isActive: $showFriends) {
                         EmptyView()
                     }
                 }
@@ -204,6 +209,7 @@ struct HomeView: View {
                 RewardedAdManager.shared.loadAd()
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 
     func playBlot() {
@@ -226,10 +232,14 @@ struct HomeView: View {
                     
                     self.roomID = roomId
                     
-                    BotsManager.shared.startBotTimerAfterCreatingRoom(roomId: roomId) {
+                    BotsManager.shared.startBotTimerAfterCreatingRoom(roomId: roomId) {updatedPlayers in
                         DispatchQueue.main.async {
                             isLoading = false
                             shouldNavigate = true
+                        }
+                        RoomManager.shared.distributeCardsToPlayers(roomId: roomId, players: updatedPlayers) { success in
+                            
+                            print("Bots added: \(updatedPlayers.count), cards distributed: \(success)")
                         }
                     }
                 }

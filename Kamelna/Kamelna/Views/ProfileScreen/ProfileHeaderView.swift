@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct ProfileHeaderView: View {
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedData: Data?
     
@@ -13,7 +13,7 @@ struct ProfileHeaderView: View {
                 // Edit Button - Could be for profile editing
                 Button("تعديل") {
                     SoundManager.shared.playSound(named: "ButtonClicked.mp3")
-                    profileViewModel.updateRank(earnedPoint: 5000)
+                   // profileViewModel.updateRank(earnedPoint: 1000)
                 }
                 .padding(5)
                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
@@ -88,7 +88,7 @@ struct ProfileHeaderView: View {
                         if let data = try? await newItem?.loadTransferable(type: Data.self) {
                             selectedData = data
                             if let uiImage = UIImage(data: data) {
-                                self.profileViewModel.genrerateUrlImage(image: uiImage)
+                                self.profileViewModel.updateImage(image: uiImage)
                             }
                         }
                     }

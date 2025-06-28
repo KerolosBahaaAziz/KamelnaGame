@@ -43,7 +43,7 @@ struct CurrentPlayerGameView: View {
                 }
 //                .padding()
             }
-            BottomButtonsView(userName:playerName, status: "جديد")
+            BottomButtonsView()
         }
         .padding([.leading, .trailing])
     }

@@ -77,9 +77,12 @@ struct ContentView: View {
         //                }
         //            }
 
-        RegisterView()
+        //HomeView()
+        //RegisterView()
+
+       //RegisterView()
         //        CreateRoomView()
-        //        RegisterView()
+             //  RegisterView()
 //                CreateRoomView()
 
         //        LoadingScreenView()
@@ -88,12 +91,14 @@ struct ContentView: View {
 //        LoadingScreenView()
        // HomeView()
        // JoinRoomByCode()
-
 //      ProfileView()
-        //HomeView()
+    //HomeView()
 //        JoinRoomByCode()
-
-      //ProfileView()
+     //ProfileView()
+        //FriendView()
+        //RequestView()
+        FriendTabView()
+        //MainCupView()
         
     }
 }

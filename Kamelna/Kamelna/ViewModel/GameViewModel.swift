@@ -14,8 +14,8 @@ class GameViewModel: ObservableObject {
     @Published var players: [Player] = []
     
     var listener: ListenerRegistration?
-     var roomId: String
-     var playerId: String
+    var roomId: String
+    var playerId: String
     var hand: [Card] {
         guard let roomData = roomData,
               let players = roomData["players"] as? [String: [String: Any]],
@@ -33,10 +33,10 @@ class GameViewModel: ObservableObject {
               let lastCardString = cards.last?["card"] else {
             return nil
         }
-
+        
         return Card.from(string: lastCardString)
     }
-
+    
     var playedCards: [Card] {
         guard let roomData = roomData,
               let trick = roomData["trick"] as? [String: String] else {
@@ -44,8 +44,8 @@ class GameViewModel: ObservableObject {
         }
         return trick.values.compactMap { Card.from(string: $0) }
     }
-
-
+    
+    
     init(roomId: String, playerId: String) {
         self.roomId = roomId
         self.playerId = playerId
@@ -54,27 +54,31 @@ class GameViewModel: ObservableObject {
             self.fetchPlayers(roomId: roomId)
         }
     }
-
-
+    
+    
     func listenToRoomUpdates() {
         RoomManager.shared.listenToRoom(roomId: roomId) { [weak self] data in
             if data != nil {
                 DispatchQueue.main.async {
                     self?.roomData = data
                     self?.checkTurn()
+                    
+                    if let status = data?["status"] as? String, status == RoomStatus.ended.rawValue {
+                        self?.handleRoomFinished()
+                    }
                 }
             }else {
                 print("no room wwith this id so can not to fetch room data")
             }
         }
     }
-
+    
     func fetchPlayers(roomId: String) {
         Firestore.firestore().collection("rooms").document(roomId)
             .addSnapshotListener { snapshot, error in
                 guard let data = snapshot?.data() else { return }
                 print("room id : \(roomId)")
-
+                
                 if let playersMap = data["players"] as? [String: [String: Any]] {
                     let players: [Player] = playersMap.compactMap { (key, value) in
                         do {
@@ -117,8 +121,12 @@ class GameViewModel: ObservableObject {
               let handStrings = playerData["hand"] as? [String] else {
             return []
         }
-
+        
         return handStrings.compactMap { Card.from(string: $0) }
+    }
+    
+    func handleRoomFinished() {
+        print("🎉 Room status is finished — perform finalization logic here.")
     }
     
     func startListeningForRoomUpdates() {
@@ -127,9 +135,9 @@ class GameViewModel: ObservableObject {
             self?.checkTurn()
         }
     }
-
+    
     deinit {
         listener?.remove()
     }
-
+    
 }

@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct TopButtonsView: View {
-    let usScore: Int
-    let themScore: Int
+    @StateObject private var viewModel = TopButtonsViewModel()
     let roomNumber: String
+    let roomId = UserDefaults.standard.string(forKey: "roomId") ?? ""
+    let userId = UserDefaults.standard.string(forKey: "userId") ?? ""
+    
     var body: some View {
         NavigationStack{
             HStack{
@@ -28,7 +30,7 @@ struct TopButtonsView: View {
                             Text("لنا")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.caption)
-                            Text("\(usScore)")
+                            Text("\(viewModel.usScore)")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.subheadline)
                                 .bold()
@@ -42,7 +44,7 @@ struct TopButtonsView: View {
                             Text("لهم")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.caption)
-                            Text("\(themScore)")
+                            Text("\(viewModel.themScore)")
                                 .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                                 .font(.subheadline)
                                 .bold()
@@ -84,6 +86,9 @@ struct TopButtonsView: View {
             .cornerRadius(20)
             .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: -3)
         }
+        .onAppear {
+            viewModel.listenToScores(roomId: roomId, userId: userId)
+        }
     }
     
     func iconButton(systemName: String, label: String, action: @escaping () -> Void) -> some View {
@@ -106,5 +111,5 @@ struct TopButtonsView: View {
 }
 
 #Preview {
-    TopButtonsView(usScore: 12, themScore: 900, roomNumber: "567J5")
+    TopButtonsView(roomNumber: "567J5")
 }

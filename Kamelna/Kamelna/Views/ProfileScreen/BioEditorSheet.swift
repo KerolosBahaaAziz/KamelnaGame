@@ -11,7 +11,7 @@ import SwiftUI
 struct BioEditorSheet: View {
     @Binding var tempBioText: String
     @Binding var showBioEditor: Bool
-    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var profileViewModel: UserViewModel
     var body: some View {
         ZStack {
             BackgroundGradient.backgroundGradient
@@ -48,7 +48,7 @@ struct BioEditorSheet: View {
                         SoundManager.shared.playSound(named: "ButtonClicked.mp3")
                         showBioEditor = false
                         // TODO: Save bioText back to ViewModel or persistence
-                        profileViewModel.updateUser(enumField: .brief, value: tempBioText)
+                        profileViewModel.updateBreif(brief: tempBioText)
                     }
                     .font(.headline)
                     .foregroundStyle(ButtonForeGroundColor.backgroundGradient)

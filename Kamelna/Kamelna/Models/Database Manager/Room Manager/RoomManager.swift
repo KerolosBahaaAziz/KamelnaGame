@@ -12,7 +12,10 @@ class RoomManager : ObservableObject{
     static let shared = RoomManager()
     @Published var listener: ListenerRegistration?
     @Published var messages: [Message] = []
-    
+    private var playerId = UserDefaults.standard.string(forKey: "userId")
+    var someoneChoseInCycleOne = false
+    var currentAttempt = 1
+
     private init() {}
   
     func playCard(roomId: String, playerId: String, card: String, completion: @escaping (Bool) -> Void) {
@@ -21,7 +24,7 @@ class RoomManager : ObservableObject{
         
         roomRef.getDocument { document, error in
             guard let document = document, document.exists,
-                  var roomData = document.data(),
+                  let roomData = document.data(),
                   var players = roomData["players"] as? [String: [String: Any]],
                   var playerData = players[playerId],
                   var hand = playerData["hand"] as? [String] else {
@@ -148,7 +151,7 @@ class RoomManager : ObservableObject{
                   let currentInTrick = data["currentTrick"] as? [String: Any],
                   let cardsArray = currentInTrick["cards"] as? [[String: String]] ,
                   let index = players.firstIndex(of: currentTurn) else {
-                      print("did not enter in advance turn function")
+                print("did not enter in advance turn function")
                 return
             }
             
@@ -160,12 +163,27 @@ class RoomManager : ObservableObject{
                         cardsInTrick[pid] = c
                     }
                 }
-
+                if let trumpSuitRaw = data["trumpSuit"] as? String,
+                   let trumpSuit = Suit(rawValue: trumpSuitRaw),
+                   !trumpSuitRaw.isEmpty {
+                    // Valid trumpSuit was found
+                    print("Trump suit is: \(trumpSuit)")
+                    self.rotatePlayersOrder(roomId: roomId){
+                        RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: trumpSuit)
+                    }
+                } else {
+                    // No trumpSuit (صن round), handle accordingly
+                    print("No trump suit selected (صن round)")
+                    self.rotatePlayersOrder(roomId: roomId){
+                        RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: nil )
+                    }
+                }
+                
+                
                 // End of trick
-                RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: .hearts)
+                //RoomManager.shared.endRound(roomId: roomId, cardsInTrick: cardsInTrick, trumpSuit: .hearts)
                 return
             }
-            
             
             let nextIndex = (index + 1) % players.count
             let nextPlayer = players[nextIndex]
@@ -177,7 +195,6 @@ class RoomManager : ObservableObject{
             }
         }
     }
-
   
     func createRoom(currentUserId: String, name: String ,currentUserEmail : String , completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
@@ -190,10 +207,21 @@ class RoomManager : ObservableObject{
             "createdAt": FieldValue.serverTimestamp(),
             "status": RoomStatus.waiting.rawValue, // ممكن تبقى: waiting / playing / ended
             "gameType": "baloot",
+            "roundType": "",
+            "winningTeam": "",
             "trumpSuit": NSNull(), // لسه متحددش
             "turnPlayerId": currentUserId, // لسه متبدأش اللعبة
             "roundNumber": 1, // يبدأ من الجولة 1
+            "roundSelection": [
+                "currentSelector": playerId ?? "", // current player whose turn to choose roundType
+                "startTime": Timestamp(), // when their 10s started
+                "basCandidate": ""
+            ],
             "teamScores": [
+                "team1": 0, // فريق 1 يبدأ من صفر
+                "team2": 0  // فريق 2 يبدأ من صفر
+            ],
+            "roundScores": [
                 "team1": 0, // فريق 1 يبدأ من صفر
                 "team2": 0  // فريق 2 يبدأ من صفر
             ],
@@ -211,6 +239,7 @@ class RoomManager : ObservableObject{
             "currentTrick": [
                 "cards": [] // هيتضاف كل لاعب يلعب
             ],
+            "double": false,
             "trickWinner": NSNull(),
             "playerOrder": [currentUserId],
             "history": [:] // ممكن نحط كل تريك بعد ما يخلص هنا
@@ -261,12 +290,22 @@ class RoomManager : ObservableObject{
     func distributeCardsToPlayers(roomId: String, players: [String: [String: Any]], completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         let roomRef = db.collection("rooms").document(roomId)
-        
-        // تأكد إن عدد اللاعبين ٤ فقط
+
         guard players.count == 4 else {
             print("Error: Number of players must be exactly 4 to distribute cards.")
             completion(false)
             return
+        }
+
+        var playerOrder : [String] = [""]
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                   let order = data["playerOrder"] as? [String],
+                  !playerOrder.isEmpty else {
+                print("Missing or invalid playerOrder.")
+                return
+            }
+            playerOrder = order
         }
         
         let allCards = [
@@ -275,32 +314,269 @@ class RoomManager : ObservableObject{
             "7♣️", "8♣️", "9♣️", "10♣️", "J♣️", "Q♣️", "K♣️", "A♣️",
             "7♦️", "8♦️", "9♦️", "10♦️", "J♦️", "Q♦️", "K♦️", "A♦️"
         ]
-        
+
         var shuffledCards = allCards.shuffled()
-        var updatedPlayers = players
-        
-        for (playerId, var playerData) in updatedPlayers {
-            let hand = Array(shuffledCards.prefix(8))
-            shuffledCards.removeFirst(8)
-            playerData["hand"] = hand
-            playerData["playedCard"] = NSNull()
-            updatedPlayers[playerId] = playerData
-        }
-        
         var updates: [String: Any] = [:]
-        for (playerId, playerData) in updatedPlayers {
-            updates["players.\(playerId)"] = playerData
+
+        // Phase 1: 5 cards each
+        for (playerId, playerData) in players {
+            let firstFive = Array(shuffledCards.prefix(5))
+            shuffledCards.removeFirst(5)
+
+            var updatedPlayer = playerData
+            updatedPlayer["hand"] = firstFive
+            updatedPlayer["playedCard"] = NSNull()
+
+            updates["players.\(playerId)"] = updatedPlayer
         }
+
+        var ground: String = ""
+        // Add 1 card to currentTrick.cards
+        if let groundCard = shuffledCards.first {
+            ground = shuffledCards.first ?? ""
+            shuffledCards.removeFirst()
+            updates["currentTrick.cards"] = [["card": groundCard, "playerId": NSNull()]]
+        }
+
+        let playerIds = Array(players.keys)
+        let firstPlayerId = playerIds.first ?? ""
+        updates["roundSelection"] = [
+            "currentSelector": firstPlayerId,
+            "startTime": FieldValue.serverTimestamp()
+        ]
+        
+        // Save first update
         roomRef.updateData(updates) { error in
             if let error = error {
-                print("Error distributing cards: \(error)")
+                print("Error during Phase 1 card distribution: \(error)")
                 completion(false)
-            } else {
-                print("Cards distributed successfully")
+                return
+            }
+
+            print("Phase 1 complete. Waiting for roundType or timeout...")
+
+            // Phase 2: Wait for roundType or timeout
+            self.waitForRoundTypeOrTimeout(roomRef: roomRef, remainingCards: shuffledCards, playerIds: playerOrder, groundCard:ground ) {
                 completion(true)
             }
         }
     }
+
+    private func waitForRoundTypeOrTimeout(roomRef: DocumentReference, remainingCards: [String], playerIds: [String], groundCard: String, completion: @escaping () -> Void) {
+        var didChooseRoundType = false
+        var listener: ListenerRegistration?
+        var basCandidate: String? = nil
+        var gaveBasFinalChance = false
+
+        func cleanup() {
+            listener?.remove()
+            completion()
+        }
+
+        func listenForRoundType() {
+            listener = roomRef.addSnapshotListener { snapshot, error in
+                guard let data = snapshot?.data(),
+                      let type = data["roundType"] as? String else {
+                    return
+                }
+                
+                if self.currentAttempt == 1 && (type == "بس" || type == "حكم" || type == "صن") {
+                    self.someoneChoseInCycleOne = true
+                }
+
+                if type == "بس", basCandidate == nil {
+                    basCandidate = data["roundSelection.currentSelector"] as? String
+                    print("بس selected by \(basCandidate ?? "unknown")")
+                }
+
+                if type == "حكم" || type == "صن" {
+                    if !didChooseRoundType {
+                        didChooseRoundType = true
+                        print("Final roundType '\(type)' chosen — distributing.")
+
+                        // If "بس" was chosen before, ignore it
+                        if basCandidate != nil {
+                            roomRef.updateData(["roundType": type])
+                        }
+
+                        self.distributeRemainingCards(
+                            roomRef: roomRef,
+                            remainingCards: remainingCards,
+                            groundCard: groundCard,
+                            playerIds: playerIds,
+                            completion: cleanup
+                        )
+                    }
+                }
+            }
+        }
+
+        func cycleThroughSelectors(attempt: Int = 1, index: Int = 0) {
+            currentAttempt = attempt
+            guard attempt <= 2 else {
+                print("Two full cycles completed.")
+
+                // After 2 cycles: if بس chosen, give final chance
+                if let basId = basCandidate, !gaveBasFinalChance, !didChooseRoundType {
+                    gaveBasFinalChance = true
+                    print("Giving final 10s chance to بس chooser: \(basId)")
+                    roomRef.updateData([
+                        "roundSelection.currentSelector": basId,
+                        "roundSelection.startTime": FieldValue.serverTimestamp()
+                    ]) { error in
+                        if let error = error {
+                            print("Error giving final بس chance: \(error)")
+                            return
+                        }
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                            if !didChooseRoundType {
+                                didChooseRoundType = true
+                                print("بس chooser failed to respond — defaulting to صن")
+                                roomRef.updateData([
+                                    "roundType": "صن",
+                                    "trumpSuit": ""
+                                ]) { error in
+                                    if let error = error {
+                                        print("Error defaulting to صن: \(error)")
+                                    }
+                                    self.distributeRemainingCards(
+                                        roomRef: roomRef,
+                                        remainingCards: remainingCards,
+                                        groundCard: groundCard,
+                                        playerIds: playerIds,
+                                        completion: cleanup
+                                    )
+                                }
+                            }
+
+                        }
+                    }
+                } else {
+                    print("No one selected anything, and no بس — staying idle.")
+                    // Optionally retry or timeout here
+                }
+                return
+            }
+
+            if index >= playerIds.count {
+                if attempt == 1 && !someoneChoseInCycleOne {
+                    print("Cycle 1 finished, no selection — starting cycle 2.")
+                    cycleThroughSelectors(attempt: attempt + 1, index: 0)
+                } else {
+                    print("Cycle 1 finished with a (bs) selection — not starting cycle 2.")
+                    // Wait for final بس chooser or just stay idle depending on your logic
+                    roomRef.getDocument { snapshot, error in
+                        if let data = snapshot?.data(),
+                           let roundType = data["roundType"] as? String,
+                           roundType == "بس",
+                           let roundSelection = data["roundSelection"] as? [String: Any],
+                           let basId = roundSelection["basCandidate"] as? String,
+                           !gaveBasFinalChance,
+                           !didChooseRoundType {
+
+                            giveFinalBasChance(basId: basId)
+
+                        } else {
+                            print("No بس chooser found in final check or already handled.")
+                        }
+                    }
+
+                }
+                return
+            }
+
+            func giveFinalBasChance(basId: String) {
+                gaveBasFinalChance = true
+                print("Giving final 10s chance to بس chooser: \(basId)")
+                roomRef.updateData([
+                    "roundSelection.currentSelector": basId,
+                    "roundSelection.startTime": FieldValue.serverTimestamp()
+                ]) { error in
+                    if let error = error {
+                        print("Error giving final بس chance: \(error)")
+                        return
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                        if !didChooseRoundType {
+                            didChooseRoundType = true
+                            print("بس chooser failed to respond — defaulting to صن")
+                            roomRef.updateData([
+                                "roundType": "صن",
+                                "trumpSuit": ""
+                            ]) { error in
+                                if let error = error {
+                                    print("Error defaulting to صن: \(error)")
+                                }
+                                self.distributeRemainingCards(
+                                    roomRef: roomRef,
+                                    remainingCards: remainingCards,
+                                    groundCard: groundCard,
+                                    playerIds: playerIds,
+                                    completion: cleanup
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            let selector = playerIds[index]
+            print("Now selecting: \(selector) [cycle \(attempt)]")
+
+            roomRef.updateData([
+                "roundSelection.currentSelector": selector,
+                "roundSelection.startTime": FieldValue.serverTimestamp()
+            ]) { error in
+                if let error = error {
+                    print("Error setting current selector: \(error)")
+                    return
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    if !didChooseRoundType {
+                        cycleThroughSelectors(attempt: attempt, index: index + 1)
+                    }
+                }
+            }
+        }
+
+        listenForRoundType()
+        cycleThroughSelectors()
+    }
+    
+
+    private func distributeRemainingCards(roomRef: DocumentReference, remainingCards: [String], groundCard: String, playerIds: [String], completion: @escaping () -> Void) {
+        var updates: [String: Any] = [:]
+        var cards = remainingCards
+        cards.append(groundCard) // Include the trick card
+
+        for playerId in playerIds {
+            guard cards.count >= 3 else {
+                print("Error: Not enough cards to distribute to player \(playerId)")
+                break
+            }
+
+            let additionalCards = Array(cards.prefix(3))
+            cards.removeFirst(3)
+            updates["players.\(playerId).hand"] = FieldValue.arrayUnion(additionalCards)
+        }
+
+        // Clear the trick
+        updates["currentTrick.cards"] = []
+        updates["status"] = RoomStatus.started  .rawValue
+
+        roomRef.updateData(updates) { error in
+            if let error = error {
+                print("Error during Phase 2 card distribution: \(error)")
+            } else {
+                print("Phase 2 complete. All cards distributed.")
+            }
+            completion()
+        }
+    }
+
     
     func joinRoom(roomId: String, currentUserId: String,currentUserEmail : String ,playerName: String, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
@@ -429,25 +705,39 @@ class RoomManager : ObservableObject{
     }
     
     // دالة لتحديد الفائز في الجولة
-    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: Suit) -> String? {
-        var highestCard: String = ""
-        var highestCardValue: Int = 0
-        var winnerPlayerId: String?
-        
+    // MARK: - Main Function to Calculate Trick Winner
+    func calculateTrickWinner(cardsInTrick: [String: String], trumpSuit: Suit?) -> String? {
+        guard !cardsInTrick.isEmpty else { return nil }
+
+        let leadCard = cardsInTrick.first!.value
+        let leadSuit = getSuit(card: leadCard)
+
+        var highestCardValue = -1
+        var winningPlayerId: String?
+
         for (playerId, card) in cardsInTrick {
-            let isTrump = isTrumpCard(card: card, trumpSuit: trumpSuit)
-            let cardValue = getCardPoints(card: card, trumpSuit: trumpSuit, isTrumpGame: isTrump)
-            
-            // إذا كانت الورقة أعلى من الورقة الحالية
-            if cardValue > highestCardValue {
-                highestCardValue = cardValue
-                highestCard = card
-                winnerPlayerId = playerId
+            let cardSuit = getSuit(card: card)
+            let isTrump = trumpSuit != nil && card.contains(trumpSuit!.rawValue)
+            let isSameSuitAsLead = cardSuit == leadSuit
+
+            let isTrumpGame = trumpSuit != nil
+
+            // Non-trump cards are only valid if they follow the lead suit in "صن"
+            let validCard = isTrump || isSameSuitAsLead
+
+            if validCard {
+                let cardValue = getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
+
+                if cardValue > highestCardValue {
+                    highestCardValue = cardValue
+                    winningPlayerId = playerId
+                }
             }
         }
-        
-        return winnerPlayerId
+
+        return winningPlayerId
     }
+
     
     // دالة لحساب النقاط بناءً على الورقة
     func getCardPoints(card: String, trumpSuit: Suit, isTrumpGame: Bool) -> Int {
@@ -468,19 +758,14 @@ class RoomManager : ObservableObject{
     
     
     // دالة لحساب قيمة الورقة
+    // Get numeric value of a card
     func getCardValue(card: String, trumpSuit: String?, isTrumpGame: Bool) -> Int {
-        // استخرج الرتبة والسوت
-        let suits = ["♠️", "♥️", "♣️", "♦️"]
-        guard let suit = suits.first(where: { card.contains($0) }) else { return 0 }
-        
-        // استخرج الرتبة (زي "J", "10", "A"...)
-        let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
-        guard let rank = ranks.first(where: { card.contains($0) }) else { return 0 }
-        
-        let isTrump = (trumpSuit != nil && suit == trumpSuit)
-        
+        let suit = getSuit(card: card)
+        let rank = getRank(card: card)
+        let isTrump = trumpSuit != nil && suit == trumpSuit
+
         if isTrumpGame && isTrump {
-            // قيم الكروت في الحكم
+            // حكم (Trump) values
             switch rank {
             case "J": return 20
             case "9": return 14
@@ -491,7 +776,7 @@ class RoomManager : ObservableObject{
             default: return 0
             }
         } else {
-            // قيم الكروت في صن أو غير الحكم
+            // صن (No trump) values
             switch rank {
             case "A": return 11
             case "10": return 10
@@ -502,48 +787,357 @@ class RoomManager : ObservableObject{
             }
         }
     }
+
+    // Extract suit symbol from card string
+    func getSuit(card: String) -> String {
+        let suits = ["♠️", "♥️", "♣️", "♦️"]
+        return suits.first(where: { card.contains($0) }) ?? ""
+    }
+
+    // Extract rank from card string
+    func getRank(card: String) -> String {
+        let ranks = ["10", "J", "Q", "K", "A", "9", "8", "7"]
+        return ranks.first(where: { card.contains($0) }) ?? ""
+    }
+
     
     // دالة لتحديث النقاط بعد انتهاء الجولة
-    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit) {
-        let db = Firestore.firestore()
-        let roomRef = db.collection("rooms").document(roomId)
-
-        guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
-            print("Could not determine trick winner.")
-            return
-        }
-        print("player win is: \(winnerPlayerId)")
-        
-        roomRef.getDocument { document, error in
-            guard let doc = document, doc.exists,
-                  var playersData = doc.data()?["players"] as? [String: [String: Any]],
-                  var teamScores = doc.data()?["teamScores"] as? [String: Int],
-                  let round = doc.data()?["roundNumber"] as? Int else {
+    func endRound(roomId: String, cardsInTrick: [String: String], trumpSuit: Suit?) {
+            let db = Firestore.firestore()
+            let roomRef = db.collection("rooms").document(roomId)
+            
+            guard let winnerPlayerId = calculateTrickWinner(cardsInTrick: cardsInTrick, trumpSuit: trumpSuit) else {
+                print("Could not determine trick winner.")
                 return
             }
-
-            let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
-
-            if winningTeam == "team1" {
-                teamScores["team1"] = (teamScores["team1"] ?? 0) + 10
-            } else {
-                teamScores["team2"] = (teamScores["team2"] ?? 0) + 10
-            }
-
-            roomRef.updateData([
-                "turnPlayerId": winnerPlayerId,
-                "currentTrick": ["cards": [:]],
-                "roundNumber": round + 1,
-                "teamScores": teamScores
-            ]) { error in
-                if error == nil {
-                    print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
-                    RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+            
+            roomRef.getDocument { document, error in
+                guard let doc = document, doc.exists,
+                      let playersData = doc.data()?["players"] as? [String: [String: Any]],
+                      let players = doc.data()?["playerOrder"] as? [String],
+                      var teamScores = doc.data()?["teamScores"] as? [String: Int],
+                      var roundScores = doc.data()?["roundScores"] as? [String: Int],
+                      var isDouble = doc.data()?["double"] as? Bool,
+                      let round = doc.data()?["roundNumber"] as? Int else {
+                    return
                 }
+
+                let winningTeam = self.getWinningTeam(playerId: winnerPlayerId, playersData: playersData)
+                let losingTeam = (winningTeam == "team1") ? "team2" : "team1"
+                let isTrumpGame = (trumpSuit != nil)
+
+                // Total trick points
+                var totalPoints = 0
+                for (_, card) in cardsInTrick {
+                    totalPoints += self.getCardValue(card: card, trumpSuit: trumpSuit?.rawValue, isTrumpGame: isTrumpGame)
+                }
+
+                let roundType = doc.data()?["roundType"] as? String ?? ""
+                let isLastTrick = round >= 8
+
+                
+                // Identify the team that chose the round type
+                let selectorId = (doc.data()?["roundSelection"] as? [String: Any])?["currentSelector"] as? String
+                let selectorTeam = self.getWinningTeam(playerId: selectorId ?? "", playersData: playersData)
+                
+                if isLastTrick {
+                    // Apply صن / حكم scoring rules
+                    //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+                    var projectPoints: Int = 0
+                    var teamProject: String?
+                   
+                    
+                    if roundType == "صن" {
+                        if selectorTeam == losingTeam {
+                            // Penalty: choosing team loses
+                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
+                        }else {
+                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
+                            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
+                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                        }
+                        
+                    } else if roundType == "حكم" {
+                        if selectorTeam == losingTeam {
+                            // Penalty: choosing team loses
+                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 16
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 16
+                        } else {
+                            // Normal scoring
+                            teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 10)
+                            //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
+                            teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                            roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 10)
+                            roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                        }
+                    }
+                    
+                    if isDouble{
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) * 2
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) * 2
+                    }
+                    
+                    self.calculateValidProjectPoints(forRoom: roomId) { points, teamstr in
+                        projectPoints = points
+                        teamProject = teamstr
+                        
+                        if teamProject == "team1"{
+                            if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team2"] ?? 0 {
+                                teamScores[teamProject!] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                            } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team2"] ?? 0{
+                                if selectorTeam != teamProject{
+                                    teamScores[teamProject!] = (teamScores[teamProject!] ?? 0) + projectPoints
+                                }else {
+                                    teamScores["team2"] = (teamScores["team2"] ?? 0) + projectPoints
+                                    print("projectPoints = \(projectPoints)")
+                                }
+                            }
+                            
+                        } else if teamProject == "team2"{
+                            if roundScores[teamProject ?? ""] ?? 0 >= roundScores["team1"] ?? 0{
+                                teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                            } else if roundScores[teamProject ?? ""] ?? 0 < roundScores["team1"] ?? 0{
+                                if selectorTeam != teamProject{
+                                    teamScores[teamProject ?? ""] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                                }else {
+                                    teamScores["team1"] = (teamScores[teamProject ?? ""] ?? 0) + projectPoints
+                                }
+                            }
+                        }
+                        print("Game Ended. '\(winningTeam)' +\(teamScores[winningTeam] ?? 0), '\(losingTeam)' +\(teamScores[losingTeam] ?? 0)")
+
+                        // Check if any team has won the game
+                        let gameEnded = teamScores.values.contains(where: { $0 >= 152 })
+
+                        if gameEnded {
+                            roomRef.updateData([
+                                "status": RoomStatus.ended.rawValue,
+                                "teamScores": teamScores,
+                                "projects":[],
+                                "roundScores": [
+                                    "team1": 0,
+                                    "team2": 0
+                                ],
+                                "winningTeam": teamScores.first(where: { $0.value >= 152 })?.key ?? ""
+                            ]) { error in
+                                if error == nil {
+                                    print("Game finished. Final scores: \(teamScores)")
+                                }
+                            }
+                        } else {
+                            self.rotatePlayersOrder(roomId: roomId) {
+                                let playersNewOrder = doc.data()?["playerOrder"] as? [String]
+                                roomRef.updateData([
+                                    "turnPlayerId": playersNewOrder?.first ?? "",
+                                    "currentTrick": ["cards": [:]],
+                                    "roundNumber": 1,
+                                    "roundType": "",
+                                    "trumpSuit": NSNull(),
+                                    "teamScores": teamScores,
+                                    "projects":[],
+                                    "roundScores": [
+                                        "team1": 0,
+                                        "team2": 0
+                                    ]
+                                ]) { error in
+                                    if error == nil {
+                                        print("Starting new game. Winner: \(winnerPlayerId)")
+                                        RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                                    }
+                                }
+
+                                self.distributeCardsToPlayers(roomId: roomId, players: playersData) { success in
+                                    print(success ? "New game started successfully" : "Failed to start new game")
+                                }
+                            }
+                        }
+                    }
+                    
+                    return
+                }
+
+                // For non-final tricks, just assign total points to winner
+                //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + totalPoints
+                if roundType == "صن" {
+                    if selectorTeam == losingTeam {
+                        // Penalty: choosing team loses
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 26
+                        roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                        roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 26
+                    } else {
+                        // Normal scoring
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 5)
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                        roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 5)
+                        roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (26 - (totalPoints / 5))
+                    }
+                } else if roundType == "حكم" {
+                    if selectorTeam == losingTeam {
+                        // Penalty: choosing team loses
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + 0
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + 16
+                        roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + 0
+                        roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + 16
+                    } else {
+                        // Normal scoring
+                        teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) + (totalPoints / 10)
+                        //teamScores[winningTeam] = (teamScores[winningTeam] ?? 0) / 10
+                        teamScores[losingTeam] = (teamScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                        roundScores[winningTeam] = (roundScores[winningTeam] ?? 0) + (totalPoints / 10)
+                        roundScores[losingTeam] = (roundScores[losingTeam] ?? 0) + (16 - (totalPoints / 10))
+                    }
+                }
+                roomRef.updateData([
+                    "turnPlayerId": players.first ?? "",
+                    "currentTrick": ["cards": [:]],
+                    "roundNumber": round + 1,
+                    "teamScores": teamScores,
+                    "roundScores": roundScores
+                ]) { error in
+                    if error == nil {
+                        print("Trick ended. Round \(round + 1) started. Winner: \(winnerPlayerId)")
+                        RoomManager.shared.checkIfIsBotTurn(roomId: roomId)
+                    }
+                }
+            }
+        }
+
+    func calculateValidProjectPoints(forRoom roomId: String, completion: @escaping (Int, String) -> Void) {
+        determineProjectWinnerTeam(roomId: roomId) { winningTeam in
+            guard let winningTeam = winningTeam else {
+                completion(0, "")
+                return
+            }
+            
+            let db = Firestore.firestore()
+            let roomRef = db.collection("rooms").document(roomId)
+            
+            roomRef.getDocument { snapshot, error in
+                guard let data = snapshot?.data(), error == nil else {
+                    completion(0, "")
+                    return
+                }
+                
+                guard let roundType = data["roundType"] as? String,
+                      let projects = data["projects"] as? [[String: Any]],
+                      let isDouble = data["double"] as? Bool else {
+                    completion(0, "")
+                    return
+                }
+                
+                var totalPoints = 0
+                
+                for project in projects {
+                    guard let typeStr = project["type"] as? String,
+                          let team = project["team"] as? String,
+                          team == winningTeam,
+                          let type = ProjectTypes(rawValue: typeStr) else { continue }
+                    
+                    var points: Int
+                    switch type {
+                    case .fourHundred:
+                        points = 40
+                    case .hundred:
+                        points = (roundType == "صن") ? 20 : 10
+                    case .fifty:
+                        points = (roundType == "صن") ? 10 : 5
+                        if isDouble {points = points * 2}
+                    case .sra:
+                        points = (roundType == "صن") ? 4 : 2
+                        if isDouble {points = points * 2}
+                    }
+                    
+                    totalPoints += points
+                }
+                
+                completion(totalPoints, winningTeam)
             }
         }
     }
 
+    func determineProjectWinnerTeam(roomId: String, completion: @escaping (String?) -> Void) {
+        let db = Firestore.firestore()
+        let roomRef = db.collection("rooms").document(roomId)
+        
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(), error == nil else {
+                print("Error fetching room: \(error?.localizedDescription ?? "Unknown error")")
+                completion(nil)
+                return
+            }
+            
+            guard let projects = data["projects"] as? [[String: Any]] else {
+                completion(nil)
+                return
+            }
+            
+            var topProject: (type: ProjectTypes, team: String)? = nil
+            
+            for project in projects {
+                guard let typeStr = project["type"] as? String,
+                      let type = ProjectTypes(rawValue: typeStr),
+                      let team = project["team"] as? String else { continue }
+                
+                if let currentTop = topProject {
+                    if type.priority > currentTop.type.priority {
+                        topProject = (type, team)
+                    }
+                } else {
+                    topProject = (type, team)
+                }
+            }
+            
+            guard let winningTeam = topProject?.team else {
+                completion(nil)
+                return
+            }
+            
+            // Remove all projects from losing teams
+            let filteredProjects = projects.filter { $0["team"] as? String == winningTeam }
+            
+            roomRef.updateData(["projects": filteredProjects]) { updateError in
+                if let updateError = updateError {
+                    print("Error cleaning projects: \(updateError.localizedDescription)")
+                } else {
+                    print("Cleaned up projects, kept only \(winningTeam)")
+                }
+                completion(winningTeam)
+            }
+        }
+    }
+    
+    func rotatePlayersOrder(roomId: String, completion: @escaping () -> Void) {
+        let roomRef = Firestore.firestore().collection("rooms").document(roomId)
+
+        roomRef.getDocument { snapshot, error in
+            guard let data = snapshot?.data(),
+                  let playerOrder = data["playerOrder"] as? [String],
+                  !playerOrder.isEmpty else {
+                print("Missing or invalid playerOrder.")
+                return
+            }
+
+            // Rotate: move first element to end
+            let rotatedOrder = Array(playerOrder.dropFirst()) + [playerOrder.first!]
+
+            roomRef.updateData(["playerOrder": rotatedOrder]) { error in
+                if let error = error {
+                    print("Failed to rotate playerOrder: \(error)")
+                } else {
+                    print("Player order rotated: \(rotatedOrder)")
+                    completion()
+                }
+            }
+        }
+    }
     
     // دالة لتحديد الفريق الفائز بناءً على اللاعب الفائز بالجولة
     func getWinningTeam(playerId: String, playersData: [String: [String: Any]]) -> String {
