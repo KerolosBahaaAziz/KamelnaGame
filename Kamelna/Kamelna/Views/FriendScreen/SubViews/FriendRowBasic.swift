@@ -23,6 +23,7 @@ struct FriendRowBasic: View {
                     userViewModel.unFriendUser(email: user.email)
                 } label: {
                     Image(systemName: "trash")
+                        .padding()
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundColor(.white)
                                         .frame(width: 30, height: 30)
