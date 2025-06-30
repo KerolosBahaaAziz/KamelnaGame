@@ -298,6 +298,12 @@ class UserViewModel : ObservableObject{
         }
      
     }
+    func sortFriendsByRank()->[User]{
+        var tempFriendList = friendList
+        return tempFriendList.sorted {$0.rankPoints > $1.rankPoints}
+        
+        
+    }
 
         
 }

@@ -11,7 +11,7 @@ import Lottie
 struct LoadingScreenView: View {
     @State private var timeRemaining = 60
     @State private var timer: Timer? = nil
-
+    var loadingText = "Waiting for Other Players To Join ..."
     var body: some View {
         ZStack {
             BackgroundGradient.backgroundGradient
@@ -19,7 +19,7 @@ struct LoadingScreenView: View {
 
             VStack {
                 LogoView(width: 300,height: 300)
-                Text("Waiting for Other Players To Join ...")
+                Text(loadingText)
                     .foregroundStyle(ButtonBackGroundColor.backgroundGradient)
                     .font(.title2)
                     .padding()
