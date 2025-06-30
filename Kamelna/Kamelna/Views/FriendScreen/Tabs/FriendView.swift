@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FriendView: View {
-    @Environment(\.dismiss) var dismiss
+ 
     @ObservedObject var userViewModel : UserViewModel
     @State var showRequest = false
    
@@ -44,7 +44,7 @@ struct FriendView: View {
                        
                         
                     }.clipShape(RoundedRectangle(cornerRadius: 25))
-                        .frame(width: UIScreen.main.bounds.width - 50, height:  UIScreen.main.bounds.height - 220  )
+                        .frame(width: UIScreen.main.bounds.width - 20, height:  UIScreen.main.bounds.height - 220  )
                 }
                 
             }

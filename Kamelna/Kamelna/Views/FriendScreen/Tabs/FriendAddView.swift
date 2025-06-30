@@ -41,7 +41,7 @@ struct FriendAddView: View {
                         .padding()
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 25))
-                    .frame(width: UIScreen.main.bounds.width - 50,
+                    .frame(width: UIScreen.main.bounds.width - 20,
                            height: UIScreen.main.bounds.height - 220)
                     .position(x: geometry.size.width / 2,
                               y: geometry.size.height / 2)
