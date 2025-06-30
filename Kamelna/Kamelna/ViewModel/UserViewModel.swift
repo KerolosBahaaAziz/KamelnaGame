@@ -11,7 +11,9 @@ class UserViewModel : ObservableObject{
     @Published var friendList = [User]()
     @Published var sentList = [User]()
     @Published var recievedList = [User]()
-   
+    @Published var isUserLoaded = false
+    
+    
     init(){
         setUser()
         
@@ -21,8 +23,11 @@ class UserViewModel : ObservableObject{
         UserManager.shared.fetchUserByEmail(email: UserManager.shared.currentUserEmail ?? "") { user in
             self.user = user
             self.setList()
+            DispatchQueue.main.async {
+                self.isUserLoaded = true
+            }
         }
-
+        
     }
     func setList(){
         if let user = user {
@@ -47,8 +52,8 @@ class UserViewModel : ObservableObject{
                     }
                 }
             }
-
-
+            
+            
         }
     }
     func fetchUser(email: String ,completion: @escaping (User?) -> Void){
@@ -58,9 +63,9 @@ class UserViewModel : ObservableObject{
             }else{
                 completion(nil)
             }
-           
+            
         }
-       
+        
         
     }
     func updateUser(enumField : UserFireStoreAttributes , value: Any){
@@ -71,26 +76,26 @@ class UserViewModel : ObservableObject{
     func genrerateUrlImage(image:UIImage){
         UserManager.shared.generateUrlImage(image) { result in
             switch result {
-                case .success(let urlString):
+            case .success(let urlString):
                 self.updateUser(enumField: .profilePictureUrl, value: urlString)
-                case .failure(let error):
-                    print("Error uploading image: \(error)")
-                }
+            case .failure(let error):
+                print("Error uploading image: \(error)")
+            }
         }
     }
     func updateRank(earnedPoint: Int){
-            guard var rankPoints=user?.rankPoints else{ return}
-            rankPoints += earnedPoint
-            let rankCategory = RankCategory()
-            var newRank = "مبتدئ"
-            let sortedRanks = rankCategory.categories.sorted { $0.value < $1.value }
-            for (rankName,threshold) in sortedRanks{
-                if rankPoints > threshold{
-                    newRank = rankName
-                }
+        guard var rankPoints=user?.rankPoints else{ return}
+        rankPoints += earnedPoint
+        let rankCategory = RankCategory()
+        var newRank = "مبتدئ"
+        let sortedRanks = rankCategory.categories.sorted { $0.value < $1.value }
+        for (rankName,threshold) in sortedRanks{
+            if rankPoints > threshold{
+                newRank = rankName
             }
-           updateUser(enumField: .rank, value: newRank)
-           updateUser(enumField: .rankPoints, value: rankPoints)
+        }
+        updateUser(enumField: .rank, value: newRank)
+        updateUser(enumField: .rankPoints, value: rankPoints)
     }
     
     func updateFriendList(email : String){
@@ -105,7 +110,7 @@ class UserViewModel : ObservableObject{
         guard let user = user else{return}
         var sentFriendList = user.sentFriendList
         sentFriendList.append(email)
-       // print (sentFriendList.first)
+        // print (sentFriendList.first)
         updateUser(enumField: .sentFriendList, value: sentFriendList)
         UserManager.shared.fetchUserByEmail(email: email) { user in
             guard let user = user else {
@@ -117,7 +122,7 @@ class UserViewModel : ObservableObject{
             
         }
     }
-   
+    
     func updateHearts(email: String,isLike: Int){
         UserManager.shared.fetchUserByEmail(email: email) { user in
             guard let user = user else {
@@ -129,33 +134,33 @@ class UserViewModel : ObservableObject{
         }
     }
     
-
+    
     // reason for the formula below is that the user doesnt start from 0 to the next rank , he has already an established rank , so we calculate from that point instead of userRankpoint/threshold
     func rankPercentage() -> CGFloat {
         let rankCategory = RankCategory()
         let sortedRanks = rankCategory.categories.sorted { $0.value < $1.value }
-
+        
         guard let user = user else { return 0.0 }
         let currentPoints = CGFloat(user.rankPoints)
-
+        
         // Get current rank threshold
         guard let currentIndex = sortedRanks.firstIndex(where: { $0.key == user.rank }) else {
             return 0.0
         }
-
+        
         let currentThreshold = CGFloat(sortedRanks[currentIndex].value)
-
+        
         // Handle "max rank" edge case: No next rank
         if currentIndex + 1 >= sortedRanks.count {
             return 1.0
         }
-
+        
         let nextThreshold = CGFloat(sortedRanks[currentIndex + 1].value)
-
+        
         // Avoid divide-by-zero
         let range = nextThreshold - currentThreshold
         guard range > 0 else { return 1.0 }
-
+        
         // Calculate normalized percentage toward the next rank
         let progress = (currentPoints - currentThreshold) / range
         return min(max(progress, 0.0), 1.0) // Clamp between 0 and 1
@@ -170,9 +175,9 @@ class UserViewModel : ObservableObject{
                 return false
             }
         }
-     
-    }
-
         
+    }
+    
+    
 }
 

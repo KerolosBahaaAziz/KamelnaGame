@@ -95,8 +95,12 @@ struct ContentView: View {
     //HomeView()
 //        JoinRoomByCode()
      //ProfileView()
-        FriendView()
+//        FriendView()
         //RequestView()
+        MainCupView()
+            .environment(\.managedObjectContext,
+                          PersistenceController.preview.container.viewContext)
+//        RegisterView()
     }
 }
 
