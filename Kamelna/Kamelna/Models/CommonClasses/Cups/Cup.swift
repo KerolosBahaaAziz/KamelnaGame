@@ -12,28 +12,27 @@ import FirebaseFirestore
 struct Cup : Identifiable, Codable{
     @DocumentID var id : String? = UUID().uuidString
     var name : String
-    var creatorName : String
+    var creator : User
     var settings : CupSettings
     var gameSettings : GameSettings
     var prize : CupPrize
     var createdAt : Date
-    var creatorID: String
     var participants : [Participants]
     
-    init(name: String, creatorID: String, creatorName: String,
-         settings: CupSettings, gameSettings: GameSettings, prize: CupPrize) {
+    init(name: String, creator : User,
+         settings: CupSettings, gameSettings: GameSettings, prize: CupPrize ) {
         self.name = name
-        self.creatorID = creatorID
-        self.creatorName = creatorName
+        self.creator = creator
         self.settings = settings
         self.gameSettings = gameSettings
         self.prize = prize
         self.createdAt = Date()
-        
         // First participant is the creator
-        let creatorParticipant = Participants(participantID: creatorID,
-                                              name: creatorName,
-                                              teamNumber: 1)
+        let creatorParticipant = Participants(participantID: creator.id ?? UUID().uuidString,
+                                              name: creator.firstName,
+                                              teamNumber: 1,
+                                              level: creator.rankPoints,
+                                              image : creator.profilePictureUrl ?? "")
         self.participants = [creatorParticipant]
     }
 }
@@ -61,4 +60,6 @@ struct Participants : Codable{
     var participantID : String
     var name : String
     var teamNumber : Int
+    var level : Int
+    var image : String
 }
