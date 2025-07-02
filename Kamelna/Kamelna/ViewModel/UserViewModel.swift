@@ -117,13 +117,13 @@ class UserViewModel : ObservableObject{
         guard let user = user else { return }
         var tempCupIdList = user.cupIdList
         tempCupIdList.append(cupId)
-        updateUser(enumField: .cupIdList, value: cupId )
+        updateUser(enumField: .cupIdList, value: tempCupIdList )
     }
     func removeCup(cupId: String){
         guard let user = user else { return }
         var tempCupIdList = user.cupIdList
         tempCupIdList.removeAll(where: { $0 == cupId })
-        updateUser(enumField: .cupIdList, value: cupId )
+        updateUser(enumField: .cupIdList, value: tempCupIdList )
     }
     func updateImage(image:UIImage){
         UserManager.shared.generateUrlImage(image) { result in
