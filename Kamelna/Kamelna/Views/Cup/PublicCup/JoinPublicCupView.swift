@@ -75,7 +75,7 @@ struct JoinPublicCupView: View {
                             .resizable()
                             .frame(width: 80, height: 80)
                             .clipShape(Circle())
-                        Text(cup.creatorName.split(separator: " ").first?.description ?? cup.creatorName)
+                        Text(cup.creator.firstName)
                             .font(.headline)
                             .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                             .offset(y: -5)
@@ -140,28 +140,28 @@ struct JoinPublicCupView: View {
 }
 
 
-#Preview {
-    let previewCup = Cup(
-        name: "كأس رمضان",
-        creatorID: "user_123",
-        creatorName: "ياسر يوسف",
-        settings: CupSettings(
-            startImmediately: false,
-            startDelay: Date().addingTimeInterval(3600),
-            numberOfPlayers: 16,
-            matchType: "قهوة واحدة"
-        ),
-        gameSettings: GameSettings(
-            gameType: "كوتشينة",
-            innerGameTimerSeconds: 60,
-            minLevelRequired: 3
-        ),
-        prize: CupPrize(
-            firstPlace: 1000,
-            secondPlace: 500,
-            thirdPlace: 250
-        )
-    )
-    
-    JoinPublicCupView(cup: previewCup)
-}
+//#Preview {
+//    let previewCup = Cup(
+//        name: "كأس رمضان",
+//        creatorID: "user_123",
+//        creatorName: "ياسر يوسف",
+//        settings: CupSettings(
+//            startImmediately: false,
+//            startDelay: Date().addingTimeInterval(3600),
+//            numberOfPlayers: 16,
+//            matchType: "قهوة واحدة"
+//        ),
+//        gameSettings: GameSettings(
+//            gameType: "كوتشينة",
+//            innerGameTimerSeconds: 60,
+//            minLevelRequired: 3
+//        ),
+//        prize: CupPrize(
+//            firstPlace: 1000,
+//            secondPlace: 500,
+//            thirdPlace: 250
+//        ), creatorRank: 2
+//    )
+//    
+//    JoinPublicCupView(cup: previewCup)
+//}

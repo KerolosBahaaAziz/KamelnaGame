@@ -25,10 +25,11 @@ struct FriendRankView : View{
                                         .padding(.trailing,5)
                                     Text("|")
                                     Text("الترتيب")
-                                    
+                  
                                     
                                 }.font(.subheadline)
                                 .padding()
+
                                 ScrollView{
                                     ForEach(Array(userViewModel.sortFriendsByRank().enumerated()), id: \.offset) { index, user in
                                         FriendRowRank(

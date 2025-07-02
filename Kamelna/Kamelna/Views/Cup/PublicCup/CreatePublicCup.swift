@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import Combine
 
 struct CreatePublicCup: View {
     @Environment(\.dismiss) private var dismiss
@@ -35,6 +36,8 @@ struct CreatePublicCup: View {
     @State private var errorMessage: String = ""
     @State private var showSessionSettingsPopup = false
     @State private var showCupSettingsPopup = false
+    
+    @StateObject var userViewModel = UserViewModel()
     
     var body: some View {
         ZStack {
@@ -190,14 +193,17 @@ struct CreatePublicCup: View {
             secondPlace: parsedSecondPrize,
             thirdPlace: parsedThirdPrize
         )
+        guard let creator = userViewModel.user else {
+            print("could't get user data form firestore")
+            return
+        }
         
         viewModel.createCup(
             name: cupName,
-            creatorName: userName,
+            creator : creator,
             settings: settings,
             gameSettings: gameSettings,
-            prize: prize,
-            creatorID: creatorID
+            prize: prize
         )
     }
     

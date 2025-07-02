@@ -18,15 +18,12 @@ struct ProfileView: View {
     @State private var selectedRankingArranging : String = "arranging"
     @State private var awardsSelectedTab = "الجوائز"
     @StateObject var profileViewModel = UserViewModel()
-    let awardsTabs = ["الجوائز", "الإنجازات", "الألقاب"]
-    
-    
-    let tabs = ["نبذة", "التصنيف", "الجوائز"]
+    let tabs = ["نبذة", "التصنيف"]
     
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack() {
             ProfileHeaderView(profileViewModel: profileViewModel)
             // Tabs
             HStack {
@@ -46,8 +43,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            //            .padding(5)
-            //            .padding(.horizontal)
+            
             .background(ButtonBackGroundColor.backgroundGradient)
             .cornerRadius(20)
             
@@ -58,9 +54,7 @@ struct ProfileView: View {
                     BioCardView(profileViewModel: profileViewModel, showBioEditor: $showBioEditor, tempBioText: $tempBioText)
                 } else if selectedTab == "التصنيف" {
                     RankingCardView(profileViewModel: profileViewModel, selectedRankingCardTab: $selectedRankingCardTab, selectedRankingArranging: $selectedRankingArranging)
-                } else if selectedTab == "الجوائز" {
-                    AwardsCardView(selectedTab: $awardsSelectedTab)
-                }
+                } 
             }
             .animation(.easeInOut, value: selectedTab)
             
