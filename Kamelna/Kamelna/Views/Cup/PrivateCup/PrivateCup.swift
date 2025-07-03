@@ -1,16 +1,16 @@
 //
-//  PublicCup.swift
+//  PrivateCup.swift
 //  Kamelna
 //
-//  Created by Yasser Yasser on 20/05/2025.
+//  Created by Yasser Yasser on 01/07/2025.
 //
+
 import SwiftUI
 
-struct PublicCup: View {
-    @StateObject private var viewModel = CupViewModel()
+struct PrivateCup: View {
+    @StateObject private var viewModel = PrivateCupViewModel()
     @State private var showingCreateCup = false
     @StateObject var userViewModel = UserViewModel()
-    
     
     var body: some View {
         ZStack {
@@ -20,7 +20,7 @@ struct PublicCup: View {
                 if !userViewModel.isLoading && !viewModel.isLoading {
                     if viewModel.cups.isEmpty {
                         VStack(spacing: 4) {
-                            Image("PublicCup")
+                            Image("PrivateCup")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 150, height: 150)
@@ -46,8 +46,8 @@ struct PublicCup: View {
                         .foregroundStyle(ButtonForeGroundColor.backgroundGradient)
                 }
                 
-                NavigationLink(destination: CreatePublicCup(viewModel: viewModel)) {
-                    Text("إنشاء دوري عام")
+                NavigationLink(destination: CreatePrivateCup(viewModel: viewModel)) {
+                    Text("إنشاء دوري خاص")
                         .frame(maxWidth : .infinity)
                         .padding()
                         .background(ButtonBackGroundColor.backgroundGradient)
@@ -59,7 +59,43 @@ struct PublicCup: View {
             }
             .onAppear {
                 viewModel.fetchCups()
+                //                guard let user = userViewModel.user else {
+                //                    print("⚠️ User not loaded yet.")
+                //                    return
+                //                }
+                //                
+                //                var allCupIDs = Set(user.cupIdList)
+                //
+                //                for friend in userViewModel.friendList {
+                //                    allCupIDs.formUnion(friend.cupIdList)
+                //                }
+                //
+                //                print("📥 Fetching Cups:", allCupIDs)
+                //
+                //                for id in allCupIDs {
+                //                    viewModel.fetchCup(cupID: id)
+                //                }
             }
+            .onChange(of: userViewModel.isLoading){
+                if !userViewModel.isLoading {
+                    guard let user = userViewModel.user else {
+                        print("⚠️ User not loaded yet.")
+                        return
+                    }
+                    var allCupIDs = Set(user.cupIdList)
+                    
+                    for friend in userViewModel.friendList {
+                        allCupIDs.formUnion(friend.cupIdList)
+                    }
+                    
+                    print("📥 Fetching Cups:", allCupIDs)
+                    
+                    for id in allCupIDs {
+                        viewModel.fetchCup(cupID: id)
+                    }
+                }
+            }
+            
             .onDisappear{
                 viewModel.stopListeningToCups()
             }
@@ -68,6 +104,6 @@ struct PublicCup: View {
 }
 
 #Preview {
-    PublicCup()
+    PrivateCup()
 }
 

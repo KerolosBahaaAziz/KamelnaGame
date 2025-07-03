@@ -1,14 +1,13 @@
 //
-//  ParticipantsView.swift
+//  PrivateCupParticipantsView.swift
 //  Kamelna
 //
-//  Created by Yasser Yasser on 30/05/2025.
+//  Created by Yasser Yasser on 01/07/2025.
 //
-
 import SwiftUI
 import FirebaseFirestore
 
-struct ParticipantsView: View {
+struct PrivateCupParticipantsView: View {
     
     @Environment(\.dismiss) private var dismiss
     //
@@ -23,12 +22,12 @@ struct ParticipantsView: View {
     @StateObject var userViewModel = UserViewModel()
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    @StateObject private var cupViewModel = CupViewModel() // Add CupViewModel
+    @StateObject private var cupViewModel = PrivateCupViewModel() // Add CupViewModel
     @State var cup: Cup
     var body: some View {
         ZStack{
             BackgroundGradient.backgroundGradient.ignoresSafeArea()
-            if !userViewModel.isLoading && !cupViewModel.isLoading {
+            if userViewModel.isLoading {
                 VStack{
                     HStack{
                         TextManager.textFormater("نشط الان")
@@ -246,7 +245,7 @@ struct ParticipantsView: View {
         }
         // Atomic update using arrayUnion
         do {
-            try db.collection("Public_Cups").document(cupId).updateData([
+            try db.collection("Private_Cups").document(cupId).updateData([
                 "participants": FieldValue.arrayUnion([try Firestore.Encoder().encode(newParticipant)])
             ]) { error in
                 if let error = error {
@@ -291,7 +290,7 @@ struct ParticipantsView: View {
             showErrorAlert = true
             return
         }
-        Firestore.firestore().collection("Public_Cups").document(cupId)
+        Firestore.firestore().collection("Private_Cups").document(cupId)
             .addSnapshotListener { document, error in
                 if let error = error {
                     print("Error listening for cup updates: \(error.localizedDescription)")
@@ -334,5 +333,5 @@ struct ParticipantsView: View {
             thirdPlace: 250
         )
     )
-    ParticipantsView(cup : previewCup)
+    PrivateCupParticipantsView(cup : previewCup)
 }

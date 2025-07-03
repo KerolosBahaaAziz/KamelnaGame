@@ -1,20 +1,28 @@
+//
+//  PrivateCupViewModel.swift
+//  Kamelna
+//
+//  Created by Yasser Yasser on 01/07/2025.
+//
+
 import Foundation
 import Combine
-import FirebaseFirestore
+import Firebase
+import SwiftUICore
 
-class CupViewModel: ObservableObject {
+class PrivateCupViewModel : ObservableObject {
     @Published var cups: [Cup] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    private let cupManager = PublicCupManager.shared
+    private let cupManager = PrivateCupManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var cupsListener: ListenerRegistration?
     
-    // Create a new cup
     
-    func createCup(name: String ,creator : User, settings: CupSettings, gameSettings: GameSettings, prize: CupPrize) {
+    
+    func createCup(name: String ,creator : User, settings: CupSettings, gameSettings: GameSettings, prize: CupPrize ,onSuccess : @escaping (String)-> Void) {
         isLoading = true
         errorMessage = nil
         
@@ -25,43 +33,26 @@ class CupViewModel: ObservableObject {
             gameSettings: gameSettings,
             prize: prize
         )
-        
+        guard let newCupID = newCup.id else {
+            print("❌ Cup ID is nil")
+            isLoading = false
+            return
+        }
         cupManager.createCup(newCup) { [weak self] result in
+            guard let strongSelf = self else { return }
             DispatchQueue.main.async {
-                self?.isLoading = false
+                strongSelf.isLoading = false
                 switch result {
                 case .success:
-                    self?.fetchCups() // Refresh cup list after creation
+                    strongSelf.fetchCup(cupID: newCupID) // Refresh cup list after creation
+                    onSuccess(newCupID)
                 case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
+                    strongSelf.errorMessage = error.localizedDescription
                 }
             }
         }
     }
     
-    // Fetch a single cup
-    func fetchCup(cupID: String) {
-        isLoading = true
-        errorMessage = nil
-        
-        cupManager.fetchCup(cupID: cupID) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success(let cup):
-                    if let index = self?.cups.firstIndex(where: { $0.id == cup.id }) {
-                        self?.cups[index] = cup
-                    } else {
-                        self?.cups.append(cup)
-                    }
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    // Fetch all cups
     func fetchCups() {
         isLoading = true
         errorMessage = nil
@@ -77,6 +68,25 @@ class CupViewModel: ObservableObject {
                 case .success(let updatedCups):
                     self?.cups = updatedCups
                     print("Listener received \(updatedCups.count) cups") // Debug log
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func fetchCup(cupID: String) {
+        guard !cups.contains(where: { $0.id == cupID }) else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        cupManager.fetchCup(cupID: cupID) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let cup):
+                    self?.cups.append(cup)
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -136,12 +146,11 @@ class CupViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    self?.fetchCups()// Refresh the cup data
+                    self?.fetchCup(cupID: cupID)// Refresh the cup data
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
             }
         }
     }
-    
 }

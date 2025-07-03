@@ -9,7 +9,6 @@ import SwiftUI
 
 struct MainCupView: View {
     @State private var selectedTab = 2
-    @ObservedObject var viewModel = CupViewModel()
     
 
     var body: some View {
@@ -65,9 +64,8 @@ struct MainCupView: View {
                     Group {
                         switch selectedTab {
                         case 0:
-                            Text("Content for Tab 1")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color.red.opacity(0.1))
+                            PrivateCup()
+                                .padding()
                         case 1:
                             Text("Content for Tab 2")
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)

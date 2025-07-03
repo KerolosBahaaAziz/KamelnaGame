@@ -100,8 +100,10 @@ struct ContentView: View {
 //        FriendTabView()
         //MainCupView()
 //        FriendView()
-        //RequestView()
-        MainCupView()
+//        RequestView()
+//        RegisterView()
+//        MainCupView()
+        HomeView()
             .environment(\.managedObjectContext,
                           PersistenceController.preview.container.viewContext)
 //        RegisterView()

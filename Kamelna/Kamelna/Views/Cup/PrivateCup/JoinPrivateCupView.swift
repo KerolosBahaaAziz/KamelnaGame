@@ -1,16 +1,16 @@
 //
-//  JoinPublicCupView.swift
+//  JoinPrivateCupView.swift
 //  Kamelna
 //
-//  Created by Yasser Yasser on 26/05/2025.
+//  Created by Yasser Yasser on 01/07/2025.
 //
 
 import SwiftUI
 
-struct JoinPublicCupView: View {
+struct JoinPrivateCupView: View {
     
     @State var cup: Cup
-    @ObservedObject var cupViewModel = CupViewModel()
+    @ObservedObject var cupViewModel = PrivateCupViewModel()
     @State private var navigateToParticipants = false
     
     
@@ -166,5 +166,5 @@ struct JoinPublicCupView: View {
         )
     )
     
-    JoinPublicCupView(cup: previewCup)
+    JoinPrivateCupView(cup: previewCup)
 }
