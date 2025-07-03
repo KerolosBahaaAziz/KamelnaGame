@@ -33,7 +33,6 @@ struct FriendRowRank: View {
                 AsyncImageView(url: URL(string:profilePictureUrl ?? ""), placeHolder: "person.fill", errorImage: "photo.artframe.circle.fill")
                   
                 
- Friend-Ranking-view
                 Text("|")
                     
                 Text("\(postion)")

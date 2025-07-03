@@ -25,7 +25,6 @@ struct FriendRankView : View{
                                         .padding(.trailing,5)
                                     Text("|")
                                     Text("الترتيب")
-                              Friend-Ranking-view
                                     
                                 }.font(.subheadline)
                                 .padding()
