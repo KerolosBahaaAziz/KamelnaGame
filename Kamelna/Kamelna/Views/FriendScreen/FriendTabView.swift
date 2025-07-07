@@ -69,7 +69,6 @@ struct FriendTabView : View{
                 
             }
         }
-        
         .ignoresSafeArea(.keyboard)
     }
     
