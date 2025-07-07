@@ -203,7 +203,7 @@ struct CreatePublicCup: View {
             creator : creator,
             settings: settings,
             gameSettings: gameSettings,
-            prize: prize,
+            prize: prize
         )
     }
     
