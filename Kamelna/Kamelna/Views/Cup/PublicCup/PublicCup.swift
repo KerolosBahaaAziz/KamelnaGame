@@ -9,6 +9,8 @@ import SwiftUI
 struct PublicCup: View {
     @StateObject private var viewModel = CupViewModel()
     @State private var showingCreateCup = false
+    @StateObject var userViewModel = UserViewModel()
+
     
     var body: some View {
         ZStack {
@@ -53,6 +55,9 @@ struct PublicCup: View {
             }
             .onAppear {
                 viewModel.fetchCups()
+            }
+            .onDisappear{
+                viewModel.stopListeningToCups()
             }
         }
     }

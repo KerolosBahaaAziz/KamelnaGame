@@ -75,22 +75,54 @@ class PublicCupManager {
     }
     
     // Fetch all cups (for listing purposes)
-    func fetchAllCups(completion: @escaping (Result<[Cup], Error>) -> Void) {
-        db.collection(cupsCollection).getDocuments { (snapshot, error) in
+    func fetchAllCups(completion: @escaping (Result<[Cup], Error>) -> Void) -> ListenerRegistration {
+        return db.collection(cupsCollection).addSnapshotListener { snapshot, error in
             if let error = error {
+                print("Listener error: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
             
             guard let documents = snapshot?.documents else {
+                print("No documents received in snapshot")
                 completion(.success([]))
                 return
             }
             
+            print("Received \(documents.count) documents")
             let cups = documents.compactMap { doc in
-                try? doc.data(as: Cup.self)
+                do {
+                    let cup = try doc.data(as: Cup.self)
+                    print("Decoded cup: \(cup.name), participants: \(cup.participants.count)")
+                    return cup
+                } catch {
+                    print("Failed to decode document \(doc.documentID): \(error)")
+                    return nil
+                }
             }
+            
+            print("Total cups decoded: \(cups.count)")
             completion(.success(cups))
+        }
+    }
+    
+    // not yet tested
+    func leaveCup(cupID: String, participant: Participants, completion: @escaping (Result<Void, Error>) -> Void) {
+        let cupRef = db.collection(cupsCollection).document(cupID)
+        
+        do {
+            let data = try Firestore.Encoder().encode(participant)
+            cupRef.updateData([
+                "participants": FieldValue.arrayRemove([data])
+            ]) { error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    completion(.success(()))
+                }
+            }
+        } catch {
+            completion(.failure(error))
         }
     }
 }

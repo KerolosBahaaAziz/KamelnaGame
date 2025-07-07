@@ -5,7 +5,7 @@
 //  Created by Andrew Emad Morris on 12/05/2025.
 //
 
-struct User : Hashable,Identifiable{
+struct User : Hashable,Identifiable , Codable{
     
     
     let firstName : String

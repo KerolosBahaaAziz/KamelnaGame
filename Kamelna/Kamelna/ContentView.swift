@@ -77,7 +77,6 @@ struct ContentView: View {
         //                }
         //            }
 
-        HomeView()
        // RegisterView()
 
        //RegisterView()
@@ -98,8 +97,15 @@ struct ContentView: View {
         //FriendView()
         //RequestView()
         //FriendTabView()
+//        FriendTabView()
         //MainCupView()
-        
+//        FriendView()
+        //RequestView()
+//        MainCupView()
+        HomeView()
+            .environment(\.managedObjectContext,
+                          PersistenceController.preview.container.viewContext)
+//        RegisterView()
     }
 }
 
